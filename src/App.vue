@@ -27,7 +27,33 @@ export default {
         video1,
         video5,
       ],
-      currentVideoIndex: 0,
+      timeline: [
+        {
+          video: 0,
+          start: 0,
+          length: 3
+        },
+        {
+          video: 1,
+          start: 0,
+          length: 3
+        },
+        {
+          video: 0,
+          start: 0,
+          length: 5
+        },
+        {
+          video: 1,
+          start: 0,
+          length: 10
+        },
+        {
+          video: 0,
+          start: 0,
+          length: 10
+        },
+      ]
     };
   },
 
@@ -37,31 +63,57 @@ export default {
       video.muted = true;
     });
 
+    // Setup selected video
+    this.currVideoIndex = 0;
+    this.currentVideo = this.$refs.video[0];
+
+    this.currTime = 0;
+
     this.ctx = this.$refs.canvas.getContext('2d');
 
     // Switch current video every few seconds
-    setInterval(this.switchVideo, 3000);
-  },
+    // setInterval(this.switchVideo, 3000);
 
-  computed: {
-    currentVideo() {
-      return this.$refs.video[this.currentVideoIndex];
-    }
+    // setInterval(() => {
+    //   console.log(this.currTime);
+    // }, 1000);
   },
 
   methods: {
-    switchVideo() {
+    switchVideo(index) {
       this.currentVideo.pause();
-      this.currentVideoIndex = (this.currentVideoIndex + 1) % this.videoUrls.length;
+
+      if (index) {
+        this.currVideoIndex = index;
+      } else {
+        this.currVideoIndex = (this.currVideoIndex + 1) % this.videoUrls.length;
+      }
+
+      this.currentVideo = this.$refs.video[this.currVideoIndex];
       this.currentVideo.play();
     },
+
     handlePlay() {
       if (this.currentVideo) {
         this.currentVideo.play();
+        this.previousTime = window.performance.now();
         this.drawFrame();
       }
     },
+
     drawFrame() {
+      // Update time
+      const currTime = window.performance.now();
+      const timeElapsed = (currTime - this.previousTime) / 1000;
+      this.currTime += timeElapsed;
+      this.previousTime = currTime;
+
+      if (this.currTime > 5 && !this.switched) {
+        this.switched = true;
+        console.log(this.currTime);
+        this.switchVideo();
+      }
+
       const width = this.currentVideo.videoWidth;
       const height = this.currentVideo.videoHeight;
 
