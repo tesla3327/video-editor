@@ -7,19 +7,21 @@
         class="timeline__segment"
         :class="selected === index && 'timeline__segment--selected'"
         :style="{
-          width: `calc(${segment.length / total * 100}% - 2px)`
+          width: `calc(${(segment.length / totalLength) * 100}% - 2px)`
         }"
-        @keydown="(e) => handleKeydown(e, index)"
+        @keydown="e => handleKeydown(e, index)"
         @click="() => $emit('select', index)"
         @keydown.enter="() => $emit('select', index)"
         tabindex="0"
       >
         <span class="video-title">{{ videos[segment.video].name }}</span>
-        <span class="video-range">{{ `${segment.start}s - ${segment.start + segment.length}s` }}</span>
+        <span class="video-range">{{
+          `${segment.start}s - ${segment.start + segment.length}s`
+        }}</span>
       </div>
       <div
         class="current-time"
-        :style="{ left: `${ time / total * 100 }%` }"
+        :style="{ left: `${(time / totalLength) * 100}%` }"
       />
     </div>
   </div>
@@ -27,20 +29,17 @@
 
 <script>
 export default {
-  name: 'Timeline',
+  name: "Timeline",
 
   props: {
     keyframes: Array,
     time: Number,
     selected: Number,
     videos: Array,
+    totalLength: Number
   },
 
-  computed: {
-    total() {
-      return this.keyframes.reduce((prev, next) => prev + next.length, 0);
-    }
-  },
+  computed: {},
 
   methods: {
     handleKeydown(e, index) {
@@ -50,28 +49,28 @@ export default {
 
       let eventName;
 
-      if (e.key === 'ArrowLeft') {
+      if (e.key === "ArrowLeft") {
         if (e.shiftKey) {
-          eventName = 'lengthen-beginning';
+          eventName = "lengthen-beginning";
         } else if (e.metaKey) {
-          eventName = 'trim-end';
+          eventName = "trim-end";
         } else {
-          eventName = 'move-left';
+          eventName = "move-left";
         }
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === "ArrowRight") {
         if (e.shiftKey) {
-          eventName = 'trim-beginning';
+          eventName = "trim-beginning";
         } else if (e.metaKey) {
-          eventName = 'lengthen-end';
+          eventName = "lengthen-end";
         } else {
-          eventName = 'move-right';
+          eventName = "move-right";
         }
-      } else if (e.code === 'KeyS') {
-        eventName = 'split';
-      } else if (e.code === 'KeyD' && e.metaKey) {
-        eventName = 'duplicate';
-      } else if (e.code === 'Delete' || e.code === 'Backspace') {
-        eventName = 'delete';
+      } else if (e.code === "KeyS") {
+        eventName = "split";
+      } else if (e.code === "KeyD" && e.metaKey) {
+        eventName = "duplicate";
+      } else if (e.code === "Delete" || e.code === "Backspace") {
+        eventName = "delete";
       }
 
       if (eventName) {
@@ -86,7 +85,7 @@ export default {
 
 <style lang="scss" scoped>
 .timeline-wrapper {
-  background: #C8CEE3;
+  background: #c8cee3;
   padding: 10px;
 }
 
@@ -103,8 +102,8 @@ export default {
   top: 0;
   height: 100%;
   width: 2px;
-  background: #7518CC;
-  box-shadow: 0 10px 30px 0px rgba(0,0,0,0.8);
+  background: #7518cc;
+  box-shadow: 0 10px 30px 0px rgba(0, 0, 0, 0.8);
 }
 
 .timeline__segment {
@@ -112,7 +111,7 @@ export default {
   box-sizing: border-box;
   padding: 5px 8px;
   margin: 0 1px;
-  background: #848CAB;
+  background: #848cab;
   color: white;
   height: 100%;
   border-radius: 8px;
@@ -140,6 +139,6 @@ export default {
 }
 
 .timeline__segment--selected {
-  background: #6B7394;
+  background: #6b7394;
 }
 </style>
