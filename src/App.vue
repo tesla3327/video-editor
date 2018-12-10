@@ -11,7 +11,7 @@
     </div>
     Canvas:
     <canvas ref="canvas" width="480" height="360"/>
-    <Timeline :timeline="timeline" />
+    <Timeline :keyframes="keyframes" :time="currTime" />
   </div>
 </template>
 
@@ -24,12 +24,17 @@ import video5 from './assets/video5.mp4';
 export default {
   name: 'app',
 
+  components: {
+    Timeline,
+  },
+
   data() {
     return {
       videoUrls: [
         video1,
         video5,
       ],
+      currTime: 0,
       timeline: [
         {
           video: 0,
@@ -70,16 +75,7 @@ export default {
     this.currVideoIndex = 0;
     this.currentVideo = this.$refs.video[0];
 
-    this.currTime = 0;
-
     this.ctx = this.$refs.canvas.getContext('2d');
-
-    // Switch current video every few seconds
-    // setInterval(this.switchVideo, 3000);
-
-    // setInterval(() => {
-    //   console.log(this.currTime);
-    // }, 1000);
   },
 
   computed: {
@@ -164,7 +160,7 @@ export default {
 
 <style>
 video {
-  /* display: none; */
+  display: none;
   width: 480px;
   height: 360px;
 }
@@ -180,7 +176,6 @@ video {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin-top: 60px;
 }
