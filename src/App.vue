@@ -1,56 +1,76 @@
 <template>
   <div id="app" @click="handlePlay">
-    <video ref="video" controls src="./assets/video2.mp4" />
-    <!-- <video ref="video2" controls src="./assets/video2.mp4" /> -->
+    <div class="videos">
+      <video
+        v-for="url in videoUrls"
+        :key="url"
+        ref="video"
+        controls
+        :src="url"
+      />
+    </div>
+    Canvas:
     <canvas ref="canvas" width="480" height="360"/>
   </div>
 </template>
 
 <script>
+import video1 from './assets/video.mp4';
+import video5 from './assets/video5.mp4';
+
 export default {
   name: 'app',
-  mounted() {
-    this.ctx = this.$refs.canvas.getContext('2d');
+
+  data() {
+    return {
+      videoUrls: [
+        video1,
+        video5,
+      ],
+      currentVideoIndex: 0,
+    };
   },
+
+  mounted() {
+    // Mute all videos
+    this.$refs.video.forEach(video => {
+      video.muted = true;
+    });
+
+    this.ctx = this.$refs.canvas.getContext('2d');
+
+    // Switch current video every few seconds
+    setInterval(this.switchVideo, 3000);
+  },
+
+  computed: {
+    currentVideo() {
+      return this.$refs.video[this.currentVideoIndex];
+    }
+  },
+
   methods: {
+    switchVideo() {
+      this.currentVideo.pause();
+      this.currentVideoIndex = (this.currentVideoIndex + 1) % this.videoUrls.length;
+      this.currentVideo.play();
+    },
     handlePlay() {
-      if (this.$refs.video) {
-        this.$refs.video.play();
-        this.record();
+      if (this.currentVideo) {
+        this.currentVideo.play();
+        this.drawFrame();
       }
     },
-    record() {
-      this.$refs.video.playbackRate = 1;
-      this.frames = [];
-      this.times = [];
-      this.currentTime = 0;
-      this.recordFrame();
-    },
-    recordFrame() {
-      const newTime = this.$refs.video.currentTime;
-      this.times.push(newTime - this.currentTime);
-      this.currentTime = newTime;
-
-      if (this.$refs.video.ended) {
-        console.log(this.frames);
-        console.log(this.times);
-        return;
-      }
-
-      const width = this.$refs.video.videoWidth;
-      const height = this.$refs.video.videoHeight;
+    drawFrame() {
+      const width = this.currentVideo.videoWidth;
+      const height = this.currentVideo.videoHeight;
 
       // Put frame into context
-      this.ctx.drawImage(this.$refs.video, 0, 0, width, height);
+      this.ctx.drawImage(this.currentVideo, 0, 0, width, height);
 
-      // Save frame from context
-      this.frames.push(
-        this.ctx.getImageData(0, 0, width, height)
-      );
-
-      // Call next one
-      setTimeout(this.recordFrame, 1000/60);
-    }
+      // Draw next frame
+      this.rAF_ID = window.requestAnimationFrame(this.drawFrame);
+    },
   }
 }
 </script>
@@ -62,7 +82,14 @@ video {
   height: 360px;
 }
 
+.videos {
+  margin-bottom: 50px;
+}
+
 #app {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -72,7 +99,7 @@ video {
 }
 
 canvas {
-  margin-left: 40px;
+  margin: auto;
   width: 480px;
   height: 360px;
 }
