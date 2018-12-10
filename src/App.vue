@@ -11,10 +11,13 @@
     </div>
     Canvas:
     <canvas ref="canvas" width="480" height="360"/>
+    <Timeline :timeline="timeline" />
   </div>
 </template>
 
 <script>
+import Timeline from './components/Timeline';
+
 import video1 from './assets/video.mp4';
 import video5 from './assets/video5.mp4';
 
@@ -79,11 +82,34 @@ export default {
     // }, 1000);
   },
 
+  computed: {
+    keyframes() {
+      const frames = [];
+      let cumulative = 0;
+
+      for (let i = 0; i < this.timeline.length; i++) {
+        const frame = this.timeline[i];
+        frames.push({
+          ...frame,
+          cumulative,
+        });
+        cumulative += frame.length;
+      }
+
+      return frames;
+    },
+
+    endTime() {
+      const { cumulative, length } = this.keyframes[this.keyframes.length - 1];
+      return cumulative + length;
+    }
+  },
+
   methods: {
     switchVideo(index) {
       this.currentVideo.pause();
 
-      if (index) {
+      if (index !== undefined) {
         this.currVideoIndex = index;
       } else {
         this.currVideoIndex = (this.currVideoIndex + 1) % this.videoUrls.length;
@@ -108,10 +134,19 @@ export default {
       this.currTime += timeElapsed;
       this.previousTime = currTime;
 
-      if (this.currTime > 5 && !this.switched) {
-        this.switched = true;
-        console.log(this.currTime);
-        this.switchVideo();
+      // Check if we need to switch the video
+      const keyframe = this.keyframes.find(
+        ({ cumulative }) => cumulative < this.currTime &&
+                            cumulative >= (this.currTime - timeElapsed)
+      );
+
+      if (keyframe) {
+        console.log('[KEYFRAME]', keyframe);
+        this.switchVideo(keyframe.video);
+      } else if (this.endTime <= this.currTime) {
+        // Stop the video and stop drawing frames
+        this.currentVideo.pause();
+        return;
       }
 
       const width = this.currentVideo.videoWidth;
