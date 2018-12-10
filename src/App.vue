@@ -16,6 +16,10 @@
       :selected="selected"
       @move-left="index => handleMove(index, -1)"
       @move-right="index => handleMove(index, 1)"
+      @trim-beginning="handleTrimBeginning"
+      @lengthen-beginning="handleLengthenBeginning"
+      @trim-end="handleTrimEnd"
+      @lengthen-end="handleLengthenEnd"
       @select="handleSelect"
     />
   </div>
@@ -50,7 +54,7 @@ const timeline1 = [
   },
   {
     video: 0,
-    start: 0,
+    start: 5,
     length: 10
   },
 ];
@@ -150,6 +154,60 @@ export default {
       } else {
         this.selected = index;
       }
+    },
+
+    handleTrimBeginning(index) {
+      this.timeline = this.timeline.map((keyframe, keyIndex) => {
+        if (index === keyIndex && keyframe.length > 1) {
+          return {
+            ...keyframe,
+            start: keyframe.start + 1,
+            length: keyframe.length - 1,
+          };
+        } else {
+          return keyframe;
+        }
+      });
+    },
+
+    handleLengthenBeginning(index) {
+      this.timeline = this.timeline.map((keyframe, keyIndex) => {
+        if (index === keyIndex && keyframe.start > 0) {
+          return {
+            ...keyframe,
+            start: keyframe.start - 1,
+            length: keyframe.length + 1,
+          };
+        } else {
+          return keyframe;
+        }
+      });
+    },
+
+    handleTrimEnd(index) {
+      this.timeline = this.timeline.map((keyframe, keyIndex) => {
+        if (index === keyIndex && keyframe.length > 1) {
+          return {
+            ...keyframe,
+            length: keyframe.length - 1,
+          };
+        } else {
+          return keyframe;
+        }
+      });
+    },
+
+    handleLengthenEnd(index) {
+      this.timeline = this.timeline.map((keyframe, keyIndex) => {
+        if (index === keyIndex) {
+          return {
+            ...keyframe,
+            length: keyframe.length + 1,
+          };
+        } else {
+          return keyframe;
+        }
+      });
     },
 
     // Remove the keyframe from the array and insert it earlier

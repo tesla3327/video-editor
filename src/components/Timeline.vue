@@ -13,7 +13,8 @@
       @keydown.enter="() => $emit('select', index)"
       tabindex="0"
     >
-      Video{{ segment.video }}
+      <span class="video-title">Video{{ segment.video }}</span>
+      <span class="video-range">{{ `${segment.start}s - ${segment.start + segment.length}s` }}</span>
     </div>
     <div
       class="current-time"
@@ -44,14 +45,30 @@ export default {
         return;
       }
 
-      switch (e.key) {
-        case 'ArrowLeft':
-          this.$emit('move-left', index);
-          break;
+      let eventName;
 
-        case 'ArrowRight':
-          this.$emit('move-right', index);
-          break;
+      if (e.key === 'ArrowLeft') {
+        if (e.shiftKey) {
+          eventName = 'lengthen-beginning';
+        } else if (e.metaKey) {
+          eventName = 'trim-end';
+        } else {
+          eventName = 'move-left';
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (e.shiftKey) {
+          eventName = 'trim-beginning';
+        } else if (e.metaKey) {
+          eventName = 'lengthen-end';
+        } else {
+          eventName = 'move-right';
+        }
+      }
+
+      if (eventName) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.$emit(eventName, index);
       }
     }
   }
@@ -83,11 +100,20 @@ export default {
   margin: 0 1px;
   background: #848CAB;
   color: white;
-  font-size: 14px;
-  font-weight: bold;
   height: 100%;
   border-radius: 8px;
   transition: background 0.1s ease-in-out;
+}
+
+.video-title {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: -5px;
+}
+
+.video-range {
+  font-size: 14px;
 }
 
 .timeline__segment:hover {
