@@ -9,7 +9,6 @@
         :src="url"
       />
     </div>
-    Canvas:
     <canvas ref="canvas" width="480" height="360"/>
     <Timeline :keyframes="keyframes" :time="currTime" />
   </div>
@@ -20,6 +19,67 @@ import Timeline from './components/Timeline';
 
 import video1 from './assets/video.mp4';
 import video5 from './assets/video5.mp4';
+
+const timeline1 = [
+  {
+    video: 0,
+    start: 0,
+    length: 3
+  },
+  {
+    video: 1,
+    start: 0,
+    length: 3
+  },
+  {
+    video: 0,
+    start: 0,
+    length: 5
+  },
+  {
+    video: 1,
+    start: 0,
+    length: 10
+  },
+  {
+    video: 0,
+    start: 0,
+    length: 10
+  },
+];
+
+const timeline2 = [
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3
+  },
+];
 
 export default {
   name: 'app',
@@ -35,33 +95,7 @@ export default {
         video5,
       ],
       currTime: 0,
-      timeline: [
-        {
-          video: 0,
-          start: 0,
-          length: 3
-        },
-        {
-          video: 1,
-          start: 0,
-          length: 3
-        },
-        {
-          video: 0,
-          start: 0,
-          length: 5
-        },
-        {
-          video: 1,
-          start: 0,
-          length: 10
-        },
-        {
-          video: 0,
-          start: 0,
-          length: 10
-        },
-      ]
+      timeline: timeline1,
     };
   },
 
@@ -102,7 +136,7 @@ export default {
   },
 
   methods: {
-    switchVideo(index) {
+    switchVideo(index, start = 0) {
       this.currentVideo.pause();
 
       if (index !== undefined) {
@@ -112,6 +146,7 @@ export default {
       }
 
       this.currentVideo = this.$refs.video[this.currVideoIndex];
+      this.currentVideo.currentTime = start;
       this.currentVideo.play();
     },
 
@@ -138,7 +173,7 @@ export default {
 
       if (keyframe) {
         console.log('[KEYFRAME]', keyframe);
-        this.switchVideo(keyframe.video);
+        this.switchVideo(keyframe.video, keyframe.start);
       } else if (this.endTime <= this.currTime) {
         // Stop the video and stop drawing frames
         this.currentVideo.pause();
@@ -181,7 +216,7 @@ video {
 }
 
 canvas {
-  margin: auto;
+  margin: 100px auto;
   width: 480px;
   height: 360px;
 }
