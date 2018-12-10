@@ -1,8 +1,12 @@
 <template>
-  <div id="app" @click="handlePlay">
+  <div id="app">
+    <label>
+      Add video:
+      <input type="file" ref="fileInput" @change="handleInputChange" />
+    </label>
     <div class="videos">
       <video
-        v-for="url in videoUrls"
+        v-for="({ url }) in videos"
         :key="url"
         ref="video"
         controls
@@ -10,8 +14,13 @@
       />
     </div>
     <canvas ref="canvas" width="480" height="360"/>
+    <div class="controls">
+      <button class="play" @click="handlePlay">Play</button>
+      <button class="play" @click="handleStop">Stop</button>
+    </div>
     <Timeline
       :keyframes="keyframes"
+      :videos="videos"
       :time="currTime"
       :selected="selected"
       @move-left="index => handleMove(index, -1)"
@@ -20,7 +29,10 @@
       @lengthen-beginning="handleLengthenBeginning"
       @trim-end="handleTrimEnd"
       @lengthen-end="handleLengthenEnd"
+      @duplicate="handleDuplicate"
+      @split="handleSplit"
       @select="handleSelect"
+      @delete="handleDelete"
     />
   </div>
 </template>
@@ -101,25 +113,19 @@ export default {
 
   data() {
     return {
-      videoUrls: [
-        video1,
-        video5,
-      ],
+      videos: [],
       currTime: 0,
-      timeline: timeline1,
+      timeline: [],
       selected: -1,
     };
   },
 
   mounted() {
-    // Mute all videos
-    this.$refs.video.forEach(video => {
-      video.muted = true;
-    });
+    this.muteAllVideos();
 
     // Setup selected video
-    this.currVideoIndex = 0;
-    this.currentVideo = this.$refs.video[0];
+    // this.currVideoIndex = 0;
+    // this.currentVideo = this.$refs.video[0];
 
     this.ctx = this.$refs.canvas.getContext('2d');
   },
@@ -148,12 +154,81 @@ export default {
   },
 
   methods: {
+    muteAllVideos() {
+      if (!this.$refs.video) {
+        return;
+      }
+
+      // Mute all videos
+      this.$refs.video.forEach(video => {
+        video.muted = true;
+      });
+    },
+
+    handleInputChange() {
+      const file = this.$refs.fileInput.files[0];
+
+      if (file) {
+        // Add the video object
+        const url = URL.createObjectURL(file);
+        this.videos.push({
+          url,
+          name: file.name,
+        });
+
+        // Wait a bit so we can get video duration information
+        // (video has to be decoded first??)
+        setTimeout(() => {
+          // Create region in the timeline
+          const index = this.videos.length - 1;
+          const length = this.$refs.video[index].duration;
+          this.timeline.push({
+            video: index,
+            start: 0,
+            length: Math.ceil(length),
+          });
+          this.muteAllVideos();
+        }, 50);
+      }
+    },
+
     handleSelect(index) {
       if (this.selected === index) {
         this.selected = -1;
       } else {
         this.selected = index;
       }
+    },
+
+    handleDelete(index) {
+      this.timeline.splice(index, 1);
+    },
+
+    handleDuplicate(index) {
+      // Duplicate keyframe
+      const keyframe = {
+        ...this.timeline[index],
+      };
+
+      // Insert duplicate
+      this.timeline.splice(index, 0, keyframe);
+    },
+
+    handleSplit(index) {
+      const keyframe = this.timeline[index];
+
+      const first = {
+        ...keyframe,
+        start: keyframe.start,
+        length: Math.ceil(keyframe.length / 2),
+      };
+      const second = {
+        ...keyframe,
+        start: keyframe.start + length,
+        length: Math.floor(keyframe.length / 2),
+      };
+
+      this.timeline.splice(index, 1, first, second);
     },
 
     handleTrimBeginning(index) {
@@ -233,12 +308,14 @@ export default {
     },
 
     switchVideo(index, start = 0) {
-      this.currentVideo.pause();
+      if (this.currentVideo) {
+        this.currentVideo.pause();
+      }
 
       if (index !== undefined) {
         this.currVideoIndex = index;
       } else {
-        this.currVideoIndex = (this.currVideoIndex + 1) % this.videoUrls.length;
+        this.currVideoIndex = (this.currVideoIndex + 1) % this.videos.length;
       }
 
       this.currentVideo = this.$refs.video[this.currVideoIndex];
@@ -247,10 +324,22 @@ export default {
     },
 
     handlePlay() {
+      if (!this.currentVideo && this.timeline.length) {
+        this.switchVideo(this.timeline[0].video, this.timeline[0].start);
+      }
+
       if (this.currentVideo) {
         this.currentVideo.play();
         this.previousTime = window.performance.now();
         this.drawFrame();
+      }
+    },
+
+    handleStop() {
+      if (this.currentVideo) {
+        window.cancelAnimationFrame(this.rAF_ID);
+        this.currentVideo.pause();
+        this.currTime = 0;
       }
     },
 
@@ -289,7 +378,30 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+button {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  border: 1px solid #848CAB;
+  transition: background 0.2s ease-in-out;
+
+  &:hover {
+    cursor: pointer;
+    background: #EBF0F7;
+  }
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+
+  * + * {
+    margin-left: 10px;
+  }
+}
+
 video {
   display: none;
   width: 480px;
@@ -312,8 +424,9 @@ video {
 }
 
 canvas {
-  margin: 100px auto;
+  margin: auto;
   width: 480px;
   height: 360px;
+  background: black;
 }
 </style>

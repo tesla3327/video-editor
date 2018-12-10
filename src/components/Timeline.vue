@@ -1,25 +1,27 @@
 <template>
-  <div class="timeline">
-    <div
-      v-for="(segment, index) in keyframes"
-      :key="index"
-      class="timeline__segment"
-      :class="selected === index && 'timeline__segment--selected'"
-      :style="{
-        width: `calc(${segment.length / total * 100}% - 2px)`
-      }"
-      @keydown="(e) => handleKeydown(e, index)"
-      @click="() => $emit('select', index)"
-      @keydown.enter="() => $emit('select', index)"
-      tabindex="0"
-    >
-      <span class="video-title">Video{{ segment.video }}</span>
-      <span class="video-range">{{ `${segment.start}s - ${segment.start + segment.length}s` }}</span>
+  <div class="timeline-wrapper">
+    <div class="timeline">
+      <div
+        v-for="(segment, index) in keyframes"
+        :key="index"
+        class="timeline__segment"
+        :class="selected === index && 'timeline__segment--selected'"
+        :style="{
+          width: `calc(${segment.length / total * 100}% - 2px)`
+        }"
+        @keydown="(e) => handleKeydown(e, index)"
+        @click="() => $emit('select', index)"
+        @keydown.enter="() => $emit('select', index)"
+        tabindex="0"
+      >
+        <span class="video-title">{{ videos[segment.video].name }}</span>
+        <span class="video-range">{{ `${segment.start}s - ${segment.start + segment.length}s` }}</span>
+      </div>
+      <div
+        class="current-time"
+        :style="{ left: `${ time / total * 100 }%` }"
+      />
     </div>
-    <div
-      class="current-time"
-      :style="{ left: `${ time / total * 100 }%` }"
-    />
   </div>
 </template>
 
@@ -31,6 +33,7 @@ export default {
     keyframes: Array,
     time: Number,
     selected: Number,
+    videos: Array,
   },
 
   computed: {
@@ -63,6 +66,12 @@ export default {
         } else {
           eventName = 'move-right';
         }
+      } else if (e.code === 'KeyS') {
+        eventName = 'split';
+      } else if (e.code === 'KeyD' && e.metaKey) {
+        eventName = 'duplicate';
+      } else if (e.code === 'Delete' || e.code === 'Backspace') {
+        eventName = 'delete';
       }
 
       if (eventName) {
@@ -75,7 +84,12 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.timeline-wrapper {
+  background: #C8CEE3;
+  padding: 10px;
+}
+
 .timeline {
   position: relative;
   margin: auto;
@@ -126,6 +140,6 @@ export default {
 }
 
 .timeline__segment--selected {
-  background: #5B627D;
+  background: #6B7394;
 }
 </style>
