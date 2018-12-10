@@ -49,66 +49,73 @@ import Timeline from "./components/Timeline";
 import video1 from "./assets/video.mp4";
 import video5 from "./assets/video5.mp4";
 
-const timeline1 = [
+const alternating = [
   {
     video: 0,
-    start: 0,
-    length: 3
+    start: 3,
+    length: 3,
   },
   {
     video: 1,
-    start: 0,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 0,
-    length: 5
-  },
-  {
-    video: 1,
-    start: 0,
-    length: 10
-  },
-  {
-    video: 0,
     start: 5,
-    length: 10
-  }
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 1,
+    start: 5,
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 1,
+    start: 5,
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 1,
+    start: 5,
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 1,
+    start: 5,
+    length: 3,
+  },
+  {
+    video: 0,
+    start: 3,
+    length: 3,
+  },
+  {
+    video: 1,
+    start: 5,
+    length: 3,
+  },
 ];
 
-const timeline2 = [
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3
-  }
-];
+const videos = [
+  { url: video5, name: 'beach' },
+  { url: video1, name: 'rick' },
+]
 
 export default {
   name: "app",
@@ -119,9 +126,9 @@ export default {
 
   data() {
     return {
-      videos: [],
+      videos: videos,
       currTime: 0,
-      timeline: [],
+      timeline: alternating,
       selected: -1
     };
   },
@@ -346,15 +353,25 @@ export default {
         this.currentVideo.pause();
       }
 
-      if (index !== undefined) {
-        this.currVideoIndex = index;
-      } else {
-        this.currVideoIndex = (this.currVideoIndex + 1) % this.videos.length;
+      this.currVideoIndex = index;
+      this.currentVideo = this.$refs.video[this.currVideoIndex];
+
+      // Video may be preloaded so we won't need to play it here
+      if (this.currentVideo && this.currentVideo.paused) {
+        this.currentVideo.currentTime = start;
+        this.currentVideo.play();
+      }
+    },
+
+    preloadVideo(index, start) {
+      if (start < 0) {
+        return;
       }
 
-      this.currentVideo = this.$refs.video[this.currVideoIndex];
-      this.currentVideo.currentTime = start;
-      this.currentVideo.play();
+      console.log('[PRELOADING]', this.videos[index].name);
+
+      this.$refs.video[index].currentTime = start;
+      this.$refs.video[index].play();
     },
 
     handlePlay() {
@@ -397,7 +414,6 @@ export default {
           cumulative < this.currTime &&
           cumulative >= this.currTime - timeElapsed
       );
-
       if (keyframe) {
         console.log("[KEYFRAME]", keyframe);
         this.switchVideo(keyframe.video, keyframe.start);
@@ -405,6 +421,16 @@ export default {
         // Stop the video and stop drawing frames
         this.currentVideo.pause();
         return;
+      }
+
+      // Check for preloading videos
+      const preloadFrame = this.keyframes.find(
+        ({ cumulative }) =>
+          cumulative < this.currTime + 1 &&
+          cumulative >= this.currTime + 1 - timeElapsed
+      );
+      if (preloadFrame) {
+        this.preloadVideo(preloadFrame.video, preloadFrame.start - 1);
       }
 
       const width = this.currentVideo.videoWidth;
