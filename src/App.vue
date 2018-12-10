@@ -10,7 +10,14 @@
       />
     </div>
     <canvas ref="canvas" width="480" height="360"/>
-    <Timeline :keyframes="keyframes" :time="currTime" />
+    <Timeline
+      :keyframes="keyframes"
+      :time="currTime"
+      :selected="selected"
+      @move-left="index => handleMove(index, -1)"
+      @move-right="index => handleMove(index, 1)"
+      @select="handleSelect"
+    />
   </div>
 </template>
 
@@ -96,6 +103,7 @@ export default {
       ],
       currTime: 0,
       timeline: timeline1,
+      selected: -1,
     };
   },
 
@@ -136,6 +144,36 @@ export default {
   },
 
   methods: {
+    handleSelect(index) {
+      if (this.selected === index) {
+        this.selected = -1;
+      } else {
+        this.selected = index;
+      }
+    },
+
+    // Remove the keyframe from the array and insert it earlier
+    handleMove(index, direction) {
+      // Create a copy so we don't show intermediate keyframes in the UI
+      const temp = [...this.timeline];
+
+      // Grab keyframe
+      const keyframe = temp[index];
+
+      // Remove from current position
+      temp.splice(index, 1);
+
+      // Move in timeline position
+      temp.splice(Math.max(index + direction, 0), 0, keyframe);
+
+      // Set new timeline
+      this.timeline = temp;
+
+      // Update selected
+      this.selected = -1;
+      window.focus();
+    },
+
     switchVideo(index, start = 0) {
       this.currentVideo.pause();
 
