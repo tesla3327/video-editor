@@ -4,7 +4,7 @@
       <Segment
         v-for="(segment, index) in keyframes"
         :segment="segment"
-        ref="segment"
+        :ref="segment.id"
         :key="segment.id"
         :selected="selected === segment.id"
         :index="index"
@@ -51,37 +51,24 @@ export default {
     return { positions: [] };
   },
 
-  watch: {
-    keyframes() {
-      this.$nextTick(() => {
-        this.positions = this.keyframes.map((keyframe, index) => {
-          if (!this.$refs.segment) {
-            return [];
-          }
-
-          const rect = this.$refs.segment[index].$el.getBoundingClientRect();
-          return {
-            id: keyframe.id,
-            left: rect.x,
-            right: rect.x + rect.width,
-          };
-        });
-      });
-    }
-  },
-
   methods: {
-    handleSegmentMoved({ left, right }, id) {
-      // Check to see if have moved before the prior segment
-      const segmentBefore = this.positions
-        .filter(pos => id !== pos.id)
-        .find(pos => {
-          return left > pos.left &&
-                left < pos.right - 50
-        });
+    handleSegmentMoved({ left, right, offsetX }, id) {
+      const segmentBefore = this.keyframes.find(frame => {
+        const box = this.$refs[frame.id][0].$el.getBoundingClientRect();
+        return left > box.left &&
+               left < box.left + Math.min(50, box.width / 2 - 10);
+      });
 
-      if (segmentBefore) {
+      const segmentAfter = this.keyframes.find(frame => {
+        const box = this.$refs[frame.id][0].$el.getBoundingClientRect();
+        return right < box.right &&
+               right > box.right - Math.min(50, box.width / 2 - 10);
+      });
+
+      if (segmentBefore && offsetX < 0) {
         this.$emit('move-left', id);
+      } else if (segmentAfter && offsetX > 0) {
+        this.$emit('move-right', id);
       }
     },
 

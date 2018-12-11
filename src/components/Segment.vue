@@ -47,6 +47,10 @@ export default {
         x: 0,
         y: 0,
       },
+      initialMouse: {
+        x: 0,
+        y: 0,
+      },
       mousePos: {
         x: 0,
         y: 0,
@@ -67,7 +71,7 @@ export default {
 
   watch: {
     index() {
-      if (!this.rect) {
+      if (!this.bodyGrabbed) {
         return;
       }
 
@@ -96,7 +100,7 @@ export default {
       const { x, y } = this.offset;
       return {
         width: `calc(${(this.segment.length / this.totalLength) * 100}% - 2px)`,
-        transform: `translate3D(${x}px, ${y}px, 0)`,
+        transform: this.bodyGrabbed ? `translate3D(${x}px, ${y}px, 0)` : 'translate3D(0,0,0)',
         'z-index': this.bodyGrabbed ? 1 : 0,
       };
     },
@@ -104,13 +108,19 @@ export default {
 
   methods: {
     handleStartMousedown(e) {
+      e.preventDefault();
+      e.stopPropagation();
       this.$emit('start-grab');
       this.startGrabbed = true;
+      this.initialMouse = { ...this.mousePos };
     },
 
     handleEndMousedown(e) {
+      e.preventDefault();
+      e.stopPropagation();
       this.$emit('end-grab');
       this.endGrabbed = true;
+      this.initialMouse = { ...this.mousePos };
     },
 
     handleBodyMousedown(e) {
@@ -136,35 +146,38 @@ export default {
         y: e.clientY,
       };
 
+      this.offset.x += delta.x;
+      this.offset.y += delta.y;
+
       const pixelsPerSecond = this.getPixelsPerSecond();
 
+      const resizeOffset = this.initialMouse.x - this.mousePos.x;
+
       if (this.startGrabbed) {
-        if (delta.x > pixelsPerSecond) {
-          // this.initial.x = e.screenX;
+        if (resizeOffset > pixelsPerSecond) {
+          this.initialMouse = { ...this.mousePos };
           this.$emit('lengthen-beginning');
-        } else if ((delta.x * -1) > pixelsPerSecond) {
-          // this.initial.x = e.screenX;
+        } else if (resizeOffset > pixelsPerSecond) {
+          this.initialMouse = { ...this.mousePos };
           this.$emit('trim-beginning');
         }
       } else if (this.endGrabbed) {
-        if (delta.x > pixelsPerSecond) {
-          // this.initial.x = e.screenX;
+        if (resizeOffset > pixelsPerSecond) {
+          this.initialMouse = { ...this.mousePos };
           this.$emit('trim-end');
-        } else if ((delta.x * -1) > pixelsPerSecond) {
-          // this.initial.x = e.screenX;
+        } else if (resizeOffset > pixelsPerSecond) {
+          this.initialMouse = { ...this.mousePos };
           this.$emit('lengthen-end');
         }
       } else if (this.bodyGrabbed) {
-        this.offset.x += delta.x;
-        this.offset.y += delta.y;
-
         this.rect = this.$el.getBoundingClientRect();
 
         this.$emit(
           'segment-moved',
           {
-            left: this.rect.x + this.offset.x,
-            right: this.rect.x + this.offset.x + this.rect.width,
+            offsetX: this.offset.x,
+            left: this.rect.x,
+            right: this.rect.x + this.rect.width,
           }
         );
       }
@@ -177,12 +190,16 @@ export default {
       return width / length;
     },
 
-    handleMouseup() {
-      this.$emit('end-grab');
+    clearOffset() {
       this.offset = {
         x: 0,
         y: 0,
       };
+    },
+
+    handleMouseup() {
+      this.$emit('end-grab');
+      this.clearOffset();
       this.endGrabbed = false;
       this.startGrabbed = false;
       this.bodyGrabbed = false;

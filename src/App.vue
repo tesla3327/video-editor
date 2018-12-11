@@ -51,7 +51,7 @@
 import Timeline from "./components/Timeline";
 
 let id = 0;
-const getId = () => id++;
+const getId = () => 'id-' + id++;
 
 export default {
   name: "app",
