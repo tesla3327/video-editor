@@ -31,8 +31,8 @@
       :time="currTime"
       :selected="selected"
       :total-length="totalLength"
-      @move-left="index => handleMove(index, -1)"
-      @move-right="index => handleMove(index, 1)"
+      @move-left="id => handleMove(id, -1)"
+      @move-right="id => handleMove(id, 1)"
       @trim-beginning="handleTrimBeginning"
       @lengthen-beginning="handleLengthenBeginning"
       @trim-end="handleTrimEnd"
@@ -171,19 +171,22 @@ export default {
       }
     },
 
-    handleSelect(index) {
-      if (this.selected === index) {
+    handleSelect(id) {
+      if (this.selected === id) {
         this.selected = -1;
       } else {
-        this.selected = index;
+        this.selected = id;
       }
     },
 
-    handleDelete(index) {
+    handleDelete(id) {
+      const index = this.timeline.findIndex(el => el.id === id);
       this.timeline.splice(index, 1);
     },
 
-    handleDuplicate(index) {
+    handleDuplicate(id) {
+      const index = this.timeline.findIndex(el => el.id === id);
+
       // Duplicate keyframe
       const keyframe = {
         ...this.timeline[index],
@@ -194,7 +197,8 @@ export default {
       this.timeline.splice(index, 0, keyframe);
     },
 
-    handleSplit(index) {
+    handleSplit(id) {
+      const index = this.timeline.findIndex(el => el.id === id);
       const keyframe = this.timeline[index];
 
       const first = {
@@ -213,9 +217,9 @@ export default {
       this.timeline.splice(index, 1, first, second);
     },
 
-    handleTrimBeginning(index) {
-      this.timeline = this.timeline.map((keyframe, keyIndex) => {
-        if (index === keyIndex && keyframe.length > 1) {
+    handleTrimBeginning(id) {
+      this.timeline = this.timeline.map((keyframe) => {
+        if (keyframe.id === id && keyframe.length > 1) {
           return {
             ...keyframe,
             start: keyframe.start + 1,
@@ -227,9 +231,9 @@ export default {
       });
     },
 
-    handleLengthenBeginning(index) {
-      this.timeline = this.timeline.map((keyframe, keyIndex) => {
-        if (index === keyIndex && keyframe.start > 0) {
+    handleLengthenBeginning(id) {
+      this.timeline = this.timeline.map((keyframe) => {
+        if (id === keyframe.id && keyframe.start > 0) {
           return {
             ...keyframe,
             start: keyframe.start - 1,
@@ -241,9 +245,9 @@ export default {
       });
     },
 
-    handleTrimEnd(index) {
-      this.timeline = this.timeline.map((keyframe, keyIndex) => {
-        if (index === keyIndex && keyframe.length > 1) {
+    handleTrimEnd(id) {
+      this.timeline = this.timeline.map((keyframe) => {
+        if (id === keyframe.id && keyframe.length > 1) {
           return {
             ...keyframe,
             length: keyframe.length - 1
@@ -254,9 +258,9 @@ export default {
       });
     },
 
-    handleLengthenEnd(index) {
-      this.timeline = this.timeline.map((keyframe, keyIndex) => {
-        if (index === keyIndex) {
+    handleLengthenEnd(id) {
+      this.timeline = this.timeline.map((keyframe) => {
+        if (id === keyframe.id) {
           return {
             ...keyframe,
             length: keyframe.length + 1
@@ -268,11 +272,12 @@ export default {
     },
 
     // Remove the keyframe from the array and insert it earlier
-    handleMove(index, direction) {
+    handleMove(id, direction) {
       // Create a copy so we don't show intermediate keyframes in the UI
       const temp = [...this.timeline];
 
       // Grab keyframe
+      const index = this.timeline.findIndex(el => el.id === id);
       const keyframe = temp[index];
 
       // Remove from current position

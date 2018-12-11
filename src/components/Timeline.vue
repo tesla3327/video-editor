@@ -6,19 +6,19 @@
         :segment="segment"
         ref="segment"
         :key="segment.id"
-        :selected="selected === index"
+        :selected="selected === segment.id"
         :index="index"
         :name="videos[segment.video].name"
         :total-length="totalLength"
-        @keydown.native="e => handleKeydown(e, index)"
-        @select="() => $emit('select', index)"
-        @lengthen-beginning="() => $emit('lengthen-beginning', index)"
-        @trim-beginning="() => $emit('trim-beginning', index)"
-        @lengthen-end="() => $emit('lengthen-end', index)"
-        @trim-end="() => $emit('trim-end', index)"
+        @keydown.native="e => handleKeydown(e, segment.id)"
+        @select="() => $emit('select', segment.id)"
+        @lengthen-beginning="() => $emit('lengthen-beginning', segment.id)"
+        @trim-beginning="() => $emit('trim-beginning', segment.id)"
+        @lengthen-end="() => $emit('lengthen-end', segment.id)"
+        @trim-end="() => $emit('trim-end', segment.id)"
         @start-grab="$emit('start-grab')"
         @end-grab="$emit('end-grab')"
-        @segment-moved="(e) => handleSegmentMoved(e, index)"
+        @segment-moved="(e) => handleSegmentMoved(e, segment.id)"
         tabindex="0"
       />
       <div
@@ -61,6 +61,7 @@ export default {
 
           const rect = this.$refs.segment[index].$el.getBoundingClientRect();
           return {
+            id: keyframe.id,
             left: rect.x,
             right: rect.x + rect.width,
           };
@@ -70,21 +71,21 @@ export default {
   },
 
   methods: {
-    handleSegmentMoved({ left, right }, index) {
+    handleSegmentMoved({ left, right }, id) {
       // Check to see if have moved before the prior segment
       const segmentBefore = this.positions
-        .filter((pos, idx) => index !== idx)
+        .filter(pos => id !== pos.id)
         .find(pos => {
           return left > pos.left &&
                 left < pos.right - 50
         });
 
       if (segmentBefore) {
-        this.$emit('move-left', index);
+        this.$emit('move-left', id);
       }
     },
 
-    handleKeydown(e, index) {
+    handleKeydown(e, id) {
       if (this.selected === -1) {
         return;
       }
@@ -118,7 +119,7 @@ export default {
       if (eventName) {
         e.preventDefault();
         e.stopPropagation();
-        this.$emit(eventName, index);
+        this.$emit(eventName, id);
       }
     }
   }
