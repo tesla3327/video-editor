@@ -1,7 +1,10 @@
 <template>
   <div
     class="timeline__segment"
-    :class="selected && 'timeline__segment--selected'"
+    :class="[
+      selected && 'timeline__segment--selected',
+      colour,
+    ]"
     :style="style"
     @click="$emit('select')"
     @keydown.enter="$emit('select')"
@@ -35,6 +38,7 @@ export default {
     selected: Boolean,
     name: String,
     index: Number,
+    colour: String,
   },
 
   data() {
@@ -211,7 +215,6 @@ export default {
   box-sizing: border-box;
   padding: 5px 8px;
   margin: 0 1px;
-  background: #848cab;
   color: white;
   height: 100%;
   width: 100%;
@@ -223,7 +226,6 @@ export default {
     top: 0;
     bottom: 0;
     width: 7px;
-    background: #6B7394;
   }
 
   .handle:hover {
@@ -257,8 +259,46 @@ export default {
   box-shadow: 0 0 0 3px #bfc4ff;
 }
 
-.timeline__segment--selected {
-  background: #6b7394;
+.grey {
+  background: #848cab;
+
+  &.timeline__segment--selected {
+    background: #6b7394;
+  }
+
+  .handle {
+    background: #6B7394;
+  }
+}
+
+.teal {
+  background: #21AD99;
+
+  &.timeline__segment--selected,
+  .handle {
+    background: #008576;
+  }
+}
+
+.turquoise {
+  background: #26CFDB;
+
+  &.timeline__segment--selected,
+  .handle {
+    background: #009CB8;
+  }
+}
+
+.indigo {
+  background: #8F97FF;
+
+  &.timeline__segment--selected {
+    background: #6361FA;
+  }
+
+  .handle {
+    background: #6361FA;
+  }
 }
 
 .video-title {

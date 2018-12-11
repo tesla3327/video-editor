@@ -10,6 +10,7 @@
         :index="index"
         :name="videos[segment.video].name"
         :total-length="totalLength"
+        :colour="colour"
         @keydown.native="e => handleKeydown(e, segment.id)"
         @select="() => $emit('select', segment.id)"
         @lengthen-beginning="() => $emit('lengthen-beginning', segment.id)"
@@ -48,7 +49,8 @@ export default {
     time: Number,
     selected: String,
     videos: Array,
-    totalLength: Number
+    totalLength: Number,
+    colour: String,
   },
 
   data() {
