@@ -47,10 +47,7 @@ export default {
         x: 0,
         y: 0,
       },
-      initialMouse: {
-        x: 0,
-        y: 0,
-      },
+      initialX: 0,
       mousePos: {
         x: 0,
         y: 0,
@@ -112,7 +109,7 @@ export default {
       e.stopPropagation();
       this.$emit('start-grab');
       this.startGrabbed = true;
-      this.initialMouse = { ...this.mousePos };
+      this.initialX = e.screenX;
     },
 
     handleEndMousedown(e) {
@@ -120,7 +117,7 @@ export default {
       e.stopPropagation();
       this.$emit('end-grab');
       this.endGrabbed = true;
-      this.initialMouse = { ...this.mousePos };
+      this.initialX = e.screenX;
     },
 
     handleBodyMousedown(e) {
@@ -149,24 +146,23 @@ export default {
       this.offset.x += delta.x;
       this.offset.y += delta.y;
 
+      const resizeDiff = this.initialX - e.screenX;
       const pixelsPerSecond = this.getPixelsPerSecond();
 
-      const resizeOffset = this.initialMouse.x - this.mousePos.x;
-
       if (this.startGrabbed) {
-        if (resizeOffset > pixelsPerSecond) {
-          this.initialMouse = { ...this.mousePos };
+        if (resizeDiff > pixelsPerSecond) {
+          this.initialX = e.screenX;
           this.$emit('lengthen-beginning');
-        } else if (resizeOffset > pixelsPerSecond) {
-          this.initialMouse = { ...this.mousePos };
+        } else if ((resizeDiff * -1) > pixelsPerSecond) {
+          this.initialX = e.screenX;
           this.$emit('trim-beginning');
         }
       } else if (this.endGrabbed) {
-        if (resizeOffset > pixelsPerSecond) {
-          this.initialMouse = { ...this.mousePos };
+        if (resizeDiff > pixelsPerSecond) {
+          this.initialX = e.screenX;
           this.$emit('trim-end');
-        } else if (resizeOffset > pixelsPerSecond) {
-          this.initialMouse = { ...this.mousePos };
+        } else if ((resizeDiff * -1) > pixelsPerSecond) {
+          this.initialX = e.screenX;
           this.$emit('lengthen-end');
         }
       } else if (this.bodyGrabbed) {
