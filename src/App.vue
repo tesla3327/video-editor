@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="grabbing && 'grabbing'">
     <label>
       Add video:
       <input type="file" ref="fileInput" @change="handleInputChange" />
@@ -39,6 +39,8 @@
       @split="handleSplit"
       @select="handleSelect"
       @delete="handleDelete"
+      @start-grab="grabbing = true"
+      @end-grab="grabbing = false"
     />
   </div>
 </template>
@@ -126,10 +128,11 @@ export default {
 
   data() {
     return {
-      videos: videos,
+      videos: [],
       currTime: 0,
-      timeline: alternating,
-      selected: -1
+      timeline: [],
+      selected: -1,
+      grabbing: false,
     };
   },
 
@@ -447,6 +450,10 @@ export default {
 </script>
 
 <style lang="scss">
+.grabbing * {
+  cursor: ew-resize !important;
+}
+
 button {
   padding: 5px 10px;
   border-radius: 4px;

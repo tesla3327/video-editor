@@ -1,24 +1,23 @@
 <template>
   <div class="timeline-wrapper">
     <div class="timeline">
-      <div
+      <Segment
         v-for="(segment, index) in keyframes"
+        :segment="segment"
         :key="index"
-        class="timeline__segment"
-        :class="selected === index && 'timeline__segment--selected'"
-        :style="{
-          width: `calc(${(segment.length / totalLength) * 100}% - 2px)`
-        }"
-        @keydown="e => handleKeydown(e, index)"
-        @click="() => $emit('select', index)"
-        @keydown.enter="() => $emit('select', index)"
+        :selected="selected === index"
+        :name="videos[segment.video].name"
+        :total-length="totalLength"
+        @keydown.native="e => handleKeydown(e, index)"
+        @select="() => $emit('select', index)"
+        @lengthen-beginning="() => $emit('lengthen-beginning', index)"
+        @trim-beginning="() => $emit('trim-beginning', index)"
+        @lengthen-end="() => $emit('lengthen-end', index)"
+        @trim-end="() => $emit('trim-end', index)"
+        @start-grab="$emit('start-grab')"
+        @end-grab="$emit('end-grab')"
         tabindex="0"
-      >
-        <span class="video-title">{{ videos[segment.video].name }}</span>
-        <span class="video-range">{{
-          `${segment.start}s - ${segment.start + segment.length}s`
-        }}</span>
-      </div>
+      />
       <div
         class="current-time"
         :style="{ left: `${(time / totalLength) * 100}%` }"
@@ -28,8 +27,14 @@
 </template>
 
 <script>
+import Segment from './Segment';
+
 export default {
   name: "Timeline",
+
+  components: {
+    Segment,
+  },
 
   props: {
     keyframes: Array,
@@ -38,8 +43,6 @@ export default {
     videos: Array,
     totalLength: Number
   },
-
-  computed: {},
 
   methods: {
     handleKeydown(e, index) {
@@ -86,7 +89,7 @@ export default {
 <style lang="scss" scoped>
 .timeline-wrapper {
   background: #c8cee3;
-  padding: 10px;
+  padding: 20px;
 }
 
 .timeline {
@@ -106,39 +109,5 @@ export default {
   box-shadow: 0 10px 30px 0px rgba(0, 0, 0, 0.8);
 }
 
-.timeline__segment {
-  display: inline-block;
-  box-sizing: border-box;
-  padding: 5px 8px;
-  margin: 0 1px;
-  background: #848cab;
-  color: white;
-  height: 100%;
-  border-radius: 8px;
-  transition: background 0.1s ease-in-out;
-}
 
-.video-title {
-  display: block;
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: -5px;
-}
-
-.video-range {
-  font-size: 14px;
-}
-
-.timeline__segment:hover {
-  cursor: pointer;
-}
-
-.timeline__segment:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px #bfc4ff;
-}
-
-.timeline__segment--selected {
-  background: #6b7394;
-}
 </style>
