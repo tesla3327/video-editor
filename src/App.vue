@@ -1,9 +1,5 @@
 <template>
   <div id="app" :class="grabbing && 'grabbing'">
-    <label>
-      Add video:
-      <input type="file" ref="fileInput" @change="handleInputChange" />
-    </label>
     <div class="videos">
       <video
         v-for="{ url } in videos"
@@ -43,6 +39,7 @@
       @delete="handleDelete"
       @start-grab="grabbing = true"
       @end-grab="grabbing = false"
+      @add-video="handleAddVideo"
     />
   </div>
 </template>
@@ -65,7 +62,7 @@ export default {
       videos: [],
       currTime: 0,
       timeline: [],
-      selected: -1,
+      selected: '',
       grabbing: false,
     };
   },
@@ -143,32 +140,28 @@ export default {
       });
     },
 
-    handleInputChange() {
-      const file = this.$refs.fileInput.files[0];
+    handleAddVideo(file) {
+      // Add the video object
+      const url = URL.createObjectURL(file);
+      this.videos.push({
+        url,
+        name: file.name
+      });
 
-      if (file) {
-        // Add the video object
-        const url = URL.createObjectURL(file);
-        this.videos.push({
-          url,
-          name: file.name
+      // Wait a bit so we can get video duration information
+      // (video has to be decoded first??)
+      setTimeout(() => {
+        // Create region in the timeline
+        const index = this.videos.length - 1;
+        const length = this.$refs.video[index].duration;
+        this.timeline.push({
+          id: getId(),
+          video: index,
+          start: 0,
+          length: Math.ceil(length)
         });
-
-        // Wait a bit so we can get video duration information
-        // (video has to be decoded first??)
-        setTimeout(() => {
-          // Create region in the timeline
-          const index = this.videos.length - 1;
-          const length = this.$refs.video[index].duration;
-          this.timeline.push({
-            id: getId(),
-            video: index,
-            start: 0,
-            length: Math.ceil(length)
-          });
-          this.muteAllVideos();
-        }, 50);
-      }
+        this.muteAllVideos();
+      }, 50);
     },
 
     handleSelect(id) {
@@ -290,7 +283,7 @@ export default {
       this.timeline = temp;
 
       // Update selected
-      this.selected = -1;
+      this.selected = '';
       window.focus();
     },
 

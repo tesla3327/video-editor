@@ -26,6 +26,10 @@
         :style="{ left: `${(time / totalLength) * 100}%` }"
       />
     </div>
+    <div class="add-video">
+      <div class="overlay">+</div>
+      <input type="file" ref="fileInput" @change="handleInputChange" />
+    </div>
   </div>
 </template>
 
@@ -42,7 +46,7 @@ export default {
   props: {
     keyframes: Array,
     time: Number,
-    selected: Number,
+    selected: String,
     videos: Array,
     totalLength: Number
   },
@@ -52,6 +56,14 @@ export default {
   },
 
   methods: {
+    handleInputChange() {
+      const file = this.$refs.fileInput.files[0];
+
+      if (file) {
+        this.$emit('add-video', file);
+      }
+    },
+
     handleSegmentMoved({ left, right, offsetX }, id) {
       const segmentBefore = this.keyframes.find(frame => {
         const box = this.$refs[frame.id][0].$el.getBoundingClientRect();
@@ -117,6 +129,7 @@ export default {
 .timeline-wrapper {
   background: #c8cee3;
   padding: 20px;
+  position: relative;
 }
 
 .timeline {
@@ -125,6 +138,39 @@ export default {
   width: 100%;
   max-width: 1200px;
   height: 70px;
+}
+
+.add-video {
+  position: absolute;
+  right: 10px;
+  top: 45px;
+
+  input {
+    width: 50px;
+    opacity: 0;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.overlay {
+  top: -5px;
+  left: 10px;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  font-size: 30px;
+  line-height: 30px;
+  border-radius: 50%;
+  border: 1px solid #7518cc;
+  color: #7518cc;
 }
 
 .current-time {
