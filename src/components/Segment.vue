@@ -5,11 +5,12 @@
     :style="style"
     @click="$emit('select')"
     @keydown.enter="$emit('select')"
+    @mousedown="handleBodyMousedown"
     tabindex="0"
   >
     <div
       class="handle handle--left"
-      @mousedown="handleStartMousedown"
+      @mousedown.stop="handleStartMousedown"
     />
     <div class="segment-body">
       <span class="video-title">{{ name }}</span>
@@ -19,7 +20,7 @@
     </div>
     <div
       class="handle handle--right"
-      @mousedown="handleEndMousedown"
+      @mousedown.stop="handleEndMousedown"
     />
   </div>
 </template>
@@ -33,12 +34,22 @@ export default {
     segment: Object,
     selected: Boolean,
     name: String,
+    index: Number,
   },
 
   data() {
     return {
       endGrabbed: false,
       startGrabbed: false,
+      bodyGrabbed: false,
+      offset: {
+        x: 0,
+        y: 0,
+      },
+      initial: {
+        x: 0,
+        y: 0,
+      }
     };
   },
 
@@ -52,10 +63,39 @@ export default {
     window.removeEventListener('mousemove', this.handleMouseMove);
   },
 
+  watch: {
+    index() {
+      if (!this.rect) {
+        return;
+      }
+
+      const currRect = this.$el.getBoundingClientRect();
+
+      const diff = {
+        x: currRect.x + this.rect.x,
+        y: currRect.y - this.rect.y,
+      };
+
+      // Update offset
+      this.offset.x -= diff.x;
+      this.offset.y += diff.y;
+
+      this.initial = {
+        x: 0,
+        y: 0,
+      };
+
+      this.$forceUpdate();
+    }
+  },
+
   computed: {
     style() {
+      const { x, y } = this.offset;
       return {
-        width: `calc(${(this.segment.length / this.totalLength) * 100}% - 2px)`
+        width: `calc(${(this.segment.length / this.totalLength) * 100}% - 2px)`,
+        transform: `translate3D(${-x}px, ${-y}px, 0)`,
+        'z-index': this.bodyGrabbed ? 1 : 0,
       };
     },
   },
@@ -63,40 +103,63 @@ export default {
   methods: {
     handleStartMousedown(e) {
       this.$emit('start-grab');
-      this.initialX = e.screenX;
+      this.initial.x = e.screenX;
       this.startGrabbed = true;
     },
 
     handleEndMousedown(e) {
       this.$emit('end-grab');
-      this.initialX = e.screenX;
+      this.initial.x = e.screenX;
       this.endGrabbed = true;
     },
 
+    handleBodyMousedown(e) {
+      this.initial.x = e.screenX;
+      this.initial.y = e.screenY;
+      this.bodyGrabbed = true;
+    },
+
     handleMouseMove(e) {
-      if (!this.startGrabbed && !this.endGrabbed) {
+      if (!this.startGrabbed && !this.endGrabbed && !this.bodyGrabbed) {
         return;
       }
 
-      const diff = this.initialX - e.screenX;
+      const diff = {
+        x: this.initial.x - e.screenX,
+        y: this.initial.y - e.screenY,
+      };
+
       const pixelsPerSecond = this.getPixelsPerSecond();
 
       if (this.startGrabbed) {
-        if (diff > pixelsPerSecond) {
-          this.initialX = e.screenX;
+        if (diff.x > pixelsPerSecond) {
+          this.initial.x = e.screenX;
           this.$emit('lengthen-beginning');
-        } else if ((diff * -1) > pixelsPerSecond) {
-          this.initialX = e.screenX;
+        } else if ((diff.x * -1) > pixelsPerSecond) {
+          this.initial.x = e.screenX;
           this.$emit('trim-beginning');
         }
       } else if (this.endGrabbed) {
-        if (diff > pixelsPerSecond) {
-          this.initialX = e.screenX;
+        if (diff.x > pixelsPerSecond) {
+          this.initial.x = e.screenX;
           this.$emit('trim-end');
-        } else if ((diff * -1) > pixelsPerSecond) {
-          this.initialX = e.screenX;
+        } else if ((diff.x * -1) > pixelsPerSecond) {
+          this.initial.x = e.screenX;
           this.$emit('lengthen-end');
         }
+      } else if (this.bodyGrabbed) {
+        this.offset.x = diff.x;
+        this.offset.y = diff.y;
+
+        this.rect = this.$el.getBoundingClientRect();
+
+        this.$emit(
+          'segment-moved',
+          {
+            left: this.rect.x + this.offset.x,
+            right: this.rect.x + this.offset.x + this.rect.width,
+          }
+        );
       }
     },
 
@@ -109,8 +172,17 @@ export default {
 
     handleMouseup() {
       this.$emit('end-grab');
+      this.initial = {
+        x: 0,
+        y: 0,
+      };
+      this.offset = {
+        x: 0,
+        y: 0,
+      };
       this.endGrabbed = false;
       this.startGrabbed = false;
+      this.bodyGrabbed = false;
     },
   }
 }

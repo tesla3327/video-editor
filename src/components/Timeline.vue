@@ -4,8 +4,10 @@
       <Segment
         v-for="(segment, index) in keyframes"
         :segment="segment"
-        :key="index"
+        ref="segment"
+        :key="segment.id"
         :selected="selected === index"
+        :index="index"
         :name="videos[segment.video].name"
         :total-length="totalLength"
         @keydown.native="e => handleKeydown(e, index)"
@@ -16,6 +18,7 @@
         @trim-end="() => $emit('trim-end', index)"
         @start-grab="$emit('start-grab')"
         @end-grab="$emit('end-grab')"
+        @segment-moved="(e) => handleSegmentMoved(e, index)"
         tabindex="0"
       />
       <div
@@ -44,7 +47,47 @@ export default {
     totalLength: Number
   },
 
+  data() {
+    return { positions: [] };
+  },
+
+  watch: {
+    keyframes() {
+      this.$nextTick(() => {
+        this.positions = this.keyframes.map((keyframe, index) => {
+          if (!this.$refs.segment) {
+            return [];
+          }
+
+          const rect = this.$refs.segment[index].$el.getBoundingClientRect();
+          return {
+            left: rect.x,
+            right: rect.x + rect.width,
+          };
+        });
+        console.log(this.positions);
+      });
+    }
+  },
+
   methods: {
+    handleSegmentMoved({ left, right }, index) {
+      console.log('------');
+      console.log(this.positions);
+      console.log(left, right)
+
+      // Check to see if have moved before the prior segment
+      const segmentBefore = this.positions.find(pos => {
+        return left > pos.left &&
+               left < pos.right &&
+               left < pos.left + 20;
+      });
+
+      if (segmentBefore) {
+        this.$emit('move-left', index);
+      }
+    },
+
     handleKeydown(e, index) {
       if (this.selected === -1) {
         return;
@@ -102,8 +145,8 @@ export default {
 
 .current-time {
   position: absolute;
-  top: 0;
-  height: 100%;
+  top: -20px;
+  height: calc(100% + 40px);
   width: 2px;
   background: #7518cc;
   box-shadow: 0 10px 30px 0px rgba(0, 0, 0, 0.8);

@@ -14,14 +14,16 @@
       />
     </div>
     <canvas ref="canvas" width="480" height="360" />
-    <div class="controls">
-      <button @click="seek(currTime - 10)">&lt;&lt; 10s</button>
-      <button @click="seek(currTime - 1)">&lt; 1s</button>
-      <button @click="handlePlay">Play</button>
-      <button @click="handlePause">Pause</button>
-      <button @click="handleStop">Stop</button>
-      <button @click="seek(currTime + 1)">1s &gt;</button>
-      <button @click="seek(currTime + 10)">10s &gt;&gt;</button>
+    <div class="toolbar">
+      <div class="controls">
+        <button @click="seek(currTime - 10)">&lt;&lt; 10s</button>
+        <button @click="seek(currTime - 1)">&lt; 1s</button>
+        <button @click="handlePlay">Play</button>
+        <button @click="handlePause">Pause</button>
+        <button @click="handleStop">Stop</button>
+        <button @click="seek(currTime + 1)">1s &gt;</button>
+        <button @click="seek(currTime + 10)">10s &gt;&gt;</button>
+      </div>
     </div>
     <Timeline
       :keyframes="keyframes"
@@ -48,76 +50,8 @@
 <script>
 import Timeline from "./components/Timeline";
 
-import video1 from "./assets/video.mp4";
-import video5 from "./assets/video5.mp4";
-
-const alternating = [
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-  {
-    video: 0,
-    start: 3,
-    length: 3,
-  },
-  {
-    video: 1,
-    start: 5,
-    length: 3,
-  },
-];
-
-const videos = [
-  { url: video5, name: 'beach' },
-  { url: video1, name: 'rick' },
-]
+let id = 0;
+const getId = () => id++;
 
 export default {
   name: "app",
@@ -227,6 +161,7 @@ export default {
           const index = this.videos.length - 1;
           const length = this.$refs.video[index].duration;
           this.timeline.push({
+            id: getId(),
             video: index,
             start: 0,
             length: Math.ceil(length)
@@ -251,7 +186,8 @@ export default {
     handleDuplicate(index) {
       // Duplicate keyframe
       const keyframe = {
-        ...this.timeline[index]
+        ...this.timeline[index],
+        id: getId(),
       };
 
       // Insert duplicate
@@ -264,12 +200,14 @@ export default {
       const first = {
         ...keyframe,
         start: keyframe.start,
-        length: Math.ceil(keyframe.length / 2)
+        length: Math.ceil(keyframe.length / 2),
+        id: getId(),
       };
       const second = {
         ...keyframe,
         start: keyframe.start + length,
-        length: Math.floor(keyframe.length / 2)
+        length: Math.floor(keyframe.length / 2),
+        id: getId(),
       };
 
       this.timeline.splice(index, 1, first, second);
@@ -467,10 +405,11 @@ button {
   }
 }
 
-.controls {
+.controls,
+.tools {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  margin: 20px 0;
 
   * + * {
     margin-left: 10px;
