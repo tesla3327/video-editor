@@ -65,23 +65,19 @@ export default {
             right: rect.x + rect.width,
           };
         });
-        console.log(this.positions);
       });
     }
   },
 
   methods: {
     handleSegmentMoved({ left, right }, index) {
-      console.log('------');
-      console.log(this.positions);
-      console.log(left, right)
-
       // Check to see if have moved before the prior segment
-      const segmentBefore = this.positions.find(pos => {
-        return left > pos.left &&
-               left < pos.right &&
-               left < pos.left + 20;
-      });
+      const segmentBefore = this.positions
+        .filter((pos, idx) => index !== idx)
+        .find(pos => {
+          return left > pos.left &&
+                left < pos.right - 50
+        });
 
       if (segmentBefore) {
         this.$emit('move-left', index);
