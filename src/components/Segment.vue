@@ -4,6 +4,7 @@
     :class="[
       selected && 'timeline__segment--selected',
       colour,
+      hidden && 'hidden'
     ]"
     :style="style"
     @click="$emit('select')"
@@ -39,6 +40,7 @@ export default {
     name: String,
     index: Number,
     colour: String,
+    hidden: Boolean,
   },
 
   data() {
@@ -220,6 +222,11 @@ export default {
   width: 100%;
   border-radius: 8px;
   transition: background 0.1s ease-in-out;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 
   .handle {
     position: absolute;

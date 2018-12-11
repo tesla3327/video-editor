@@ -8,9 +8,10 @@
         :key="segment.id"
         :selected="selected === segment.id"
         :index="index"
-        :name="videos[segment.video].name"
+        :name="segment.name"
         :total-length="totalLength"
         :colour="colour"
+        :hidden="segment.name === '_'"
         @keydown.native="e => handleKeydown(e, segment.id)"
         @select="() => $emit('select', segment.id)"
         @lengthen-beginning="() => $emit('lengthen-beginning', segment.id)"
@@ -48,7 +49,6 @@ export default {
     keyframes: Array,
     time: Number,
     selected: String,
-    videos: Array,
     totalLength: Number,
     colour: String,
   },
@@ -87,7 +87,7 @@ export default {
     },
 
     handleKeydown(e, id) {
-      if (this.selected === -1) {
+      if (this.selected === '') {
         return;
       }
 

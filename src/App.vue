@@ -9,7 +9,10 @@
         :src="url"
       />
     </div>
-    <canvas ref="canvas" width="480" height="360" />
+    <div class="viewport">
+      <div ref="text" class="text-overlay" />
+      <canvas ref="canvas" width="480" height="360" />
+    </div>
     <div class="toolbar">
       <div class="controls">
         <button @click="seek(currTime - 10)">&lt;&lt; 10s</button>
@@ -43,8 +46,7 @@
       @add-video="handleAddVideo"
     />
     <Timeline
-      :keyframes="keyframes"
-      :videos="videos"
+      :keyframes="textKeyframes"
       :time="currTime"
       :selected="selected"
       :total-length="totalLength"
@@ -84,6 +86,14 @@ export default {
       videos: [],
       currTime: 0,
       timeline: [],
+      textTimeline: [
+        {
+          id: 'text1',
+          text: 'Dance',
+          start: 2,
+          end: 5,
+        },
+      ],
       selected: '',
       grabbing: false,
     };
@@ -107,9 +117,56 @@ export default {
         const frame = this.timeline[i];
         frames.push({
           ...frame,
+          name: this.videos[frame.video].name,
           cumulative
         });
         cumulative += frame.length;
+      }
+
+      return frames;
+    },
+
+    textKeyframes() {
+      const frames = [];
+
+      let currTime = 0;
+      for (let i = 0; i < this.textTimeline.length; i++) {
+        const frame = this.textTimeline[i];
+
+        if (frame.start !== currTime) {
+          const length = frame.start - currTime;
+
+          frames.push({
+            id: 'blank-' + getId(),
+            text: '',
+            name: '_',
+            length,
+            cumulative: currTime,
+          });
+
+          currTime += length;
+        }
+
+        const length = frame.end - frame.start;
+        frames.push({
+          ...frame,
+          name: frame.text,
+          length,
+          cumulative: currTime,
+        });
+
+        currTime += length;
+      }
+
+      // May need another to pad out the end
+      if (currTime < this.totalLength) {
+        frames.push({
+          id: 'blank-' + getId(),
+          text: '',
+          name: '_',
+          length: this.totalLength - currTime,
+          cumulative: currTime,
+        })
       }
 
       return frames;
@@ -188,7 +245,7 @@ export default {
 
     handleSelect(id) {
       if (this.selected === id) {
-        this.selected = -1;
+        this.selected = '';
       } else {
         this.selected = id;
       }
@@ -362,6 +419,11 @@ export default {
       }
     },
 
+    displayTextKeyframe(frame) {
+      const el = this.$refs.text;
+      el.innerText = frame.text;
+    },
+
     drawFrame() {
       // Update time
       const currTime = window.performance.now();
@@ -392,6 +454,17 @@ export default {
       );
       if (preloadFrame) {
         this.preloadVideo(preloadFrame.video, preloadFrame.start - 1);
+      }
+
+      // Check for text
+      const textKeyframe = this.textKeyframes.find(
+        ({ cumulative }) =>
+          cumulative < this.currTime &&
+          cumulative >= this.currTime - timeElapsed
+      );
+      if (textKeyframe) {
+        console.log("[TEXT_KEYFRAME]", textKeyframe);
+        this.displayTextKeyframe(textKeyframe);
       }
 
       const width = this.currentVideo.videoWidth;
@@ -457,10 +530,26 @@ video {
   margin-top: 60px;
 }
 
-canvas {
+.viewport {
+  position: relative;
   margin: auto;
   width: 480px;
   height: 360px;
   background: black;
 }
+
+.text-overlay {
+  position: absolute;
+  padding: 30px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 74px;
+  font-weight: bold;
+}
+
 </style>
