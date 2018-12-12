@@ -6,8 +6,12 @@
       @change-text="handleChangeText"
       @change-font-size="handleChangeFontSize"
       @change-colour="handleChangeColour"
+      @change-name="handleChangeName"
+      @change-theme="handleChangeTheme"
+      @change-position="handleChangePosition"
     />
     <div class="main">
+      <h1 class="title">📼 Editron 📹</h1>
       <div class="videos">
         <video
           v-for="{ url } in videos"
@@ -106,17 +110,7 @@ export default {
       videos: [],
       currTime: 0,
       timeline: [],
-      textTimeline: [
-        // {
-        //   id: 'text1',
-        //   text: 'Dance',
-        //   start: 2,
-        //   end: 5,
-        //   colour: 'white',
-        //   fontSize: 24,
-        //   theme: 'grey',
-        // },
-      ],
+      textTimeline: [],
       selected: '',
       grabbing: false,
     };
@@ -149,7 +143,6 @@ export default {
         const frame = this.timeline[i];
         frames.push({
           ...frame,
-          name: this.videos[frame.video].name,
           cumulative
         });
         cumulative += frame.length;
@@ -211,11 +204,39 @@ export default {
   },
 
   methods: {
+    handleChangeName(name) {
+      const region = this.timeline.find(el => el.id === this.selected);
+      if (region) {
+       region.name = name;
+      }
+    },
+
+    handleChangeTheme(theme) {
+      let region;
+
+      if (this.selected.startsWith('text')) {
+        region = this.textTimeline.find(el => el.id === this.selected);
+      } else {
+        region = this.timeline.find(el => el.id === this.selected);
+      }
+
+      if (region) {
+       region.theme = theme;
+      }
+    },
+
     handleChangeText(text) {
       const textRegion = this.textTimeline.find(el => el.id === this.selected);
       if (textRegion) {
         textRegion.text = text;
         textRegion.name = text;
+      }
+    },
+
+    handleChangePosition(position) {
+      const textRegion = this.textTimeline.find(el => el.id === this.selected);
+      if (textRegion) {
+        textRegion.alignItems = position;
       }
     },
 
@@ -288,6 +309,7 @@ export default {
         colour: 'white',
         fontSize: 40,
         theme: 'grey',
+        alignItems: 'center',
         start,
         end: Math.min(start + 5, this.totalLength),
       };
@@ -301,7 +323,7 @@ export default {
       const url = URL.createObjectURL(file);
       this.videos.push({
         url,
-        name: file.name
+        name: file.name,
       });
 
       // Wait a bit so we can get video duration information
@@ -310,14 +332,17 @@ export default {
         // Create region in the timeline
         const index = this.videos.length - 1;
         const length = this.$refs.video[index].duration;
+        const id = getId();
         this.timeline.push({
-          id: getId(),
+          id,
           video: index,
           start: 0,
           length: Math.ceil(length),
           theme: getColour(),
+          name: file.name,
         });
         this.muteAllVideos();
+        this.selected = id;
       }, 50);
     },
 
@@ -353,7 +378,7 @@ export default {
           ...oldFrame,
           id: `text${getId()}`,
           start: oldFrame.end,
-          end: oldFrame.end + (oldFrame.end - oldFrame.start) + 1,
+          end: oldFrame.end + (oldFrame.end - oldFrame.start),
         };
 
         // Insert duplicate
@@ -478,7 +503,7 @@ export default {
           if (id === keyframe.id) {
             return {
               ...keyframe,
-              end: keyframe.end + 1
+              end: Math.min(keyframe.end + 1, this.totalLength)
             };
           } else {
             return keyframe;
@@ -578,6 +603,7 @@ export default {
       const el = this.$refs.text;
       el.style.fontSize = `${frame.fontSize}px`;
       el.style.color = frame.colour;
+      el.style.alignItems = frame.alignItems;
       el.innerText = frame.text;
     },
 
@@ -683,7 +709,7 @@ video {
 #app {
   display: flex;
   flex-flow: row;
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: "LL Circular",sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
@@ -697,6 +723,10 @@ video {
   width: 480px;
   height: 360px;
   background: black;
+}
+
+.title {
+  text-align: center;
 }
 
 .text-overlay {

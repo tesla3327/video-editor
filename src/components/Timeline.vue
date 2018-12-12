@@ -12,6 +12,7 @@
         :total-length="totalLength"
         :colour="segment.theme || 'grey'"
         :hidden="segment.name === '_'"
+        :type="type"
         @keydown.native="e => handleKeydown(e, segment.id)"
         @select="() => $emit('select', segment.id)"
         @lengthen-beginning="() => $emit('lengthen-beginning', segment.id)"
@@ -27,11 +28,11 @@
         class="current-time"
         :style="{ left: `${(time / totalLength) * 100}%` }"
       />
-    </div>
-    <div class="add-video">
-      <div class="overlay">+</div>
-      <input v-if="type === 'video'" type="file" ref="fileInput" @change="handleInputChange" />
-      <VyButton v-else @click="$emit('add-text-region')" />
+      <div class="add-video">
+        <div class="overlay">+</div>
+        <input v-if="type === 'video'" type="file" ref="fileInput" @change="handleInputChange" />
+        <VyButton v-else @click="$emit('add-text-region')" />
+      </div>
     </div>
   </div>
 </template>
@@ -135,6 +136,10 @@ export default {
   background: #c8cee3;
   padding: 20px 60px 20px 20px;
   position: relative;
+
+  & + .timeline-wrapper {
+    padding-top: 0;
+  }
 }
 
 .timeline {
@@ -147,8 +152,8 @@ export default {
 
 .add-video {
   position: absolute;
-  right: 10px;
-  top: 45px;
+  right: -50px;
+  top: calc(50% - 11px);
 
   input,
   .vy-button {
@@ -173,7 +178,7 @@ export default {
   height: 30px;
   text-align: center;
   font-size: 30px;
-  line-height: 30px;
+  line-height: 26px;
   border-radius: 50%;
   border: 1px solid #7518cc;
   color: #7518cc;

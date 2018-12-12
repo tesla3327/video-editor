@@ -17,8 +17,8 @@
       @mousedown.stop="handleStartMousedown"
     />
     <div class="segment-body">
-      <span class="video-title">{{ name.trim() || '&nbsp;' }}</span>
-      <span class="video-range">
+      <span class="video-title" :class="type">{{ name.trim() || '&nbsp;' }}</span>
+      <span v-if="type === 'video'" class="video-range">
         {{`${segment.start}s - ${segment.start + segment.length}s`}}
       </span>
     </div>
@@ -41,6 +41,7 @@ export default {
     index: Number,
     colour: String,
     hidden: Boolean,
+    type: String,
   },
 
   data() {
@@ -153,7 +154,7 @@ export default {
       this.offset.y += delta.y;
 
       const resizeDiff = this.initialX - e.screenX;
-      const pixelsPerSecond = this.getPixelsPerSecond() / 3;
+      const pixelsPerSecond = this.getPixelsPerSecond();
 
       if (this.startGrabbed) {
         if (resizeDiff > pixelsPerSecond) {
@@ -189,7 +190,7 @@ export default {
     getPixelsPerSecond() {
       const width = this.$el.clientWidth;
       const { length } = this.segment;
-      return width / length;
+      return width / (length - 1);
     },
 
     clearOffset() {
@@ -312,7 +313,6 @@ export default {
   display: block;
   font-size: 14px;
   font-weight: bold;
-  margin-bottom: -5px;
 }
 
 .video-range {
@@ -321,7 +321,7 @@ export default {
 }
 
 .video-range,
-.video-title {
+.video-title.video {
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
