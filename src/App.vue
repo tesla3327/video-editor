@@ -344,15 +344,20 @@ export default {
     handleDuplicate(id) {
       if (id.startsWith('text')) {
         const index = this.textTimeline.findIndex(el => el.id === id);
+        const oldFrame = this.textTimeline[index];
+
+        debugger;
 
         // Duplicate keyframe
         const keyframe = {
-          ...this.textTimeline[index],
+          ...oldFrame,
           id: `text${getId()}`,
+          start: oldFrame.end,
+          end: oldFrame.end + (oldFrame.end - oldFrame.start) + 1,
         };
 
         // Insert duplicate
-        this.textTimeline.splice(index, 0, keyframe);
+        this.textTimeline.splice(index + 1, 0, keyframe);
       } else {
         const index = this.timeline.findIndex(el => el.id === id);
 
@@ -363,7 +368,7 @@ export default {
         };
 
         // Insert duplicate
-        this.timeline.splice(index, 0, keyframe);
+        this.timeline.splice(index + 1, 0, keyframe);
       }
     },
 
@@ -379,8 +384,8 @@ export default {
       };
       const second = {
         ...keyframe,
-        start: keyframe.start + first.length + 1,
-        length: Math.floor(keyframe.length / 2) - 1,
+        start: keyframe.start + first.length,
+        length: Math.floor(keyframe.length / 2),
         id: getId(),
       };
 
