@@ -1,73 +1,86 @@
 <template>
   <div id="app" :class="grabbing && 'grabbing'">
-    <div class="videos">
-      <video
-        v-for="{ url } in videos"
-        :key="url"
-        ref="video"
-        controls
-        :src="url"
+    <Sidebar
+      :selected="selectedObject"
+      :type="selected.startsWith('text') ? 'text' : 'video'"
+      @change-text="handleChangeText"
+      @change-font-size="handleChangeFontSize"
+      @change-colour="handleChangeColour"
+    />
+    <div class="main">
+      <div class="videos">
+        <video
+          v-for="{ url } in videos"
+          :key="url"
+          ref="video"
+          controls
+          :src="url"
+        />
+      </div>
+      <div class="viewport">
+        <div ref="text" class="text-overlay" />
+        <canvas ref="canvas" width="480" height="360" />
+      </div>
+      <div class="toolbar">
+        <div class="controls">
+          <VyButtonGroup>
+            <VyButton @click="seek(currTime - 10)">&lt;&lt; 10s</VyButton>
+            <VyButton @click="seek(currTime - 1)">&lt; 1s</VyButton>
+            <VyButton @click="handlePlay">Play</VyButton>
+            <VyButton @click="handlePause">Pause</VyButton>
+            <VyButton @click="handleStop">Stop</VyButton>
+            <VyButton @click="seek(currTime + 1)">1s &gt;</VyButton>
+            <VyButton @click="seek(currTime + 10)">10s &gt;&gt;</VyButton>
+          </VyButtonGroup>
+        </div>
+      </div>
+      <Timeline
+        :keyframes="keyframes"
+        :videos="videos"
+        :time="currTime"
+        :selected="selected"
+        :total-length="totalLength"
+        @move-left="id => handleMove(id, -1)"
+        @move-right="id => handleMove(id, 1)"
+        @trim-beginning="handleTrimBeginning"
+        @lengthen-beginning="handleLengthenBeginning"
+        @trim-end="handleTrimEnd"
+        @lengthen-end="handleLengthenEnd"
+        @duplicate="handleDuplicate"
+        @split="handleSplit"
+        @select="handleSelect"
+        @delete="handleDelete"
+        @start-grab="grabbing = true"
+        @end-grab="grabbing = false"
+        @add-video="handleAddVideo"
+      />
+      <Timeline
+        :keyframes="textKeyframes"
+        :time="currTime"
+        :selected="selected"
+        :total-length="totalLength"
+        @move-left="id => handleMove(id, -1)"
+        @move-right="id => handleMove(id, 1)"
+        @trim-beginning="handleTrimBeginning"
+        @lengthen-beginning="handleLengthenBeginning"
+        @trim-end="handleTrimEnd"
+        @lengthen-end="handleLengthenEnd"
+        @duplicate="handleDuplicate"
+        @split="handleSplit"
+        @select="handleSelect"
+        @delete="handleDelete"
+        @start-grab="grabbing = true"
+        @end-grab="grabbing = false"
+        @add-video="handleAddVideo"
       />
     </div>
-    <div class="viewport">
-      <div ref="text" class="text-overlay" />
-      <canvas ref="canvas" width="480" height="360" />
-    </div>
-    <div class="toolbar">
-      <div class="controls">
-        <button @click="seek(currTime - 10)">&lt;&lt; 10s</button>
-        <button @click="seek(currTime - 1)">&lt; 1s</button>
-        <button @click="handlePlay">Play</button>
-        <button @click="handlePause">Pause</button>
-        <button @click="handleStop">Stop</button>
-        <button @click="seek(currTime + 1)">1s &gt;</button>
-        <button @click="seek(currTime + 10)">10s &gt;&gt;</button>
-      </div>
-    </div>
-    <Timeline
-      :keyframes="keyframes"
-      :videos="videos"
-      :time="currTime"
-      :selected="selected"
-      :total-length="totalLength"
-      @move-left="id => handleMove(id, -1)"
-      @move-right="id => handleMove(id, 1)"
-      @trim-beginning="handleTrimBeginning"
-      @lengthen-beginning="handleLengthenBeginning"
-      @trim-end="handleTrimEnd"
-      @lengthen-end="handleLengthenEnd"
-      @duplicate="handleDuplicate"
-      @split="handleSplit"
-      @select="handleSelect"
-      @delete="handleDelete"
-      @start-grab="grabbing = true"
-      @end-grab="grabbing = false"
-      @add-video="handleAddVideo"
-    />
-    <Timeline
-      :keyframes="textKeyframes"
-      :time="currTime"
-      :selected="selected"
-      :total-length="totalLength"
-      @move-left="id => handleMove(id, -1)"
-      @move-right="id => handleMove(id, 1)"
-      @trim-beginning="handleTrimBeginning"
-      @lengthen-beginning="handleLengthenBeginning"
-      @trim-end="handleTrimEnd"
-      @lengthen-end="handleLengthenEnd"
-      @duplicate="handleDuplicate"
-      @split="handleSplit"
-      @select="handleSelect"
-      @delete="handleDelete"
-      @start-grab="grabbing = true"
-      @end-grab="grabbing = false"
-      @add-video="handleAddVideo"
-    />
   </div>
 </template>
 
 <script>
+import { VyButton, VyButtonGroup } from '@vidyard/construction-yard';
 import Timeline from "./components/Timeline";
+import Sidebar from './components/Sidebar';
 
 let id = 0;
 const getId = () => 'id-' + id++;
@@ -80,7 +93,10 @@ export default {
   name: "app",
 
   components: {
-    Timeline
+    Timeline,
+    Sidebar,
+    VyButton,
+    VyButtonGroup,
   },
 
   data() {
@@ -94,6 +110,8 @@ export default {
           text: 'Dance',
           start: 2,
           end: 5,
+          colour: 'white',
+          fontSize: 24,
         },
       ],
       selected: '',
@@ -109,6 +127,15 @@ export default {
   computed: {
     totalLength() {
       return this.keyframes.reduce((prev, next) => prev + next.length, 0);
+    },
+
+    selectedObject() {
+      // Could be text or video region
+      if (this.selected.startsWith('text')) {
+        return this.textTimeline.find(el => el.id === this.selected);
+      } else {
+        return this.timeline.find(el => el.id === this.selected);
+      }
     },
 
     keyframes() {
@@ -181,6 +208,28 @@ export default {
   },
 
   methods: {
+    handleChangeText(text) {
+      const textRegion = this.textTimeline.find(el => el.id === this.selected);
+      if (textRegion) {
+        textRegion.text = text;
+        textRegion.name = text;
+      }
+    },
+
+    handleChangeFontSize(fontSize) {
+      const textRegion = this.textTimeline.find(el => el.id === this.selected);
+      if (textRegion) {
+        textRegion.fontSize = fontSize;
+      }
+    },
+
+    handleChangeColour(colour) {
+      const textRegion = this.textTimeline.find(el => el.id === this.selected);
+      if (textRegion) {
+        textRegion.colour = colour;
+      }
+    },
+
     seek(time) {
       let targetTime = time;
 
@@ -240,7 +289,7 @@ export default {
           video: index,
           start: 0,
           length: Math.ceil(length),
-          colour: getColour(),
+          theme: getColour(),
         });
         this.muteAllVideos();
       }, 50);
@@ -424,6 +473,8 @@ export default {
 
     displayTextKeyframe(frame) {
       const el = this.$refs.text;
+      el.style.fontSize = `${frame.fontSize}px`;
+      el.style.color = frame.colour;
       el.innerText = frame.text;
     },
 
@@ -484,26 +535,24 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../node_modules/@vidyard/construction-yard/dist/system/system.css';
+
 body {
   margin: 0;
   background: #FAFBFF;
 }
 
-.grabbing * {
-  cursor: ew-resize !important;
+body, html {
+  height: 100%;
+  width: 100%;
 }
 
-button {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  border: 1px solid #848cab;
-  transition: background 0.2s ease-in-out;
+.main {
+  width: 100%;
+}
 
-  &:hover {
-    cursor: pointer;
-    background: #ebf0f7;
-  }
+.grabbing * {
+  cursor: ew-resize !important;
 }
 
 .controls,
@@ -529,13 +578,13 @@ video {
 
 #app {
   display: flex;
-  flex-flow: column;
-  justify-content: center;
+  flex-flow: row;
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  margin-top: 60px;
+  width: 100%;
+  height: 100%;
 }
 
 .viewport {

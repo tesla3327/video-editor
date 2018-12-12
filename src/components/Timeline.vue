@@ -10,7 +10,7 @@
         :index="index"
         :name="segment.name"
         :total-length="totalLength"
-        :colour="segment.colour || 'grey'"
+        :colour="segment.theme || 'grey'"
         :hidden="segment.name === '_'"
         @keydown.native="e => handleKeydown(e, segment.id)"
         @select="() => $emit('select', segment.id)"
