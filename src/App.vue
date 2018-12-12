@@ -343,16 +343,16 @@ export default {
 
     handleDuplicate(id) {
       if (id.startsWith('text')) {
-        // const index = this.textTimeline.findIndex(el => el.id === id);
+        const index = this.textTimeline.findIndex(el => el.id === id);
 
-        // // Duplicate keyframe
-        // const keyframe = {
-        //   ...this.textTimeline[index],
-        //   id: `text${getId()}`,
-        // };
+        // Duplicate keyframe
+        const keyframe = {
+          ...this.textTimeline[index],
+          id: `text${getId()}`,
+        };
 
-        // // Insert duplicate
-        // this.textTimeline.splice(index, 0, keyframe);
+        // Insert duplicate
+        this.textTimeline.splice(index, 0, keyframe);
       } else {
         const index = this.timeline.findIndex(el => el.id === id);
 
@@ -379,8 +379,8 @@ export default {
       };
       const second = {
         ...keyframe,
-        start: keyframe.start + length,
-        length: Math.floor(keyframe.length / 2),
+        start: keyframe.start + first.length + 1,
+        length: Math.floor(keyframe.length / 2) - 1,
         id: getId(),
       };
 
