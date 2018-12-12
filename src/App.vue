@@ -342,57 +342,109 @@ export default {
     },
 
     handleTrimBeginning(id) {
-      this.timeline = this.timeline.map((keyframe) => {
-        if (keyframe.id === id && keyframe.length > 1) {
-          return {
-            ...keyframe,
-            start: keyframe.start + 1,
-            length: keyframe.length - 1
-          };
-        } else {
-          return keyframe;
-        }
-      });
+      if (id.startsWith('text')) {
+        this.textTimeline = this.textTimeline.map((keyframe) => {
+          if (keyframe.id === id && keyframe.start + 1 < keyframe.end) {
+            return {
+              ...keyframe,
+              start: keyframe.start + 1,
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      } else {
+        this.timeline = this.timeline.map((keyframe) => {
+          if (keyframe.id === id && keyframe.length > 1) {
+            return {
+              ...keyframe,
+              start: keyframe.start + 1,
+              length: keyframe.length - 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      }
     },
 
     handleLengthenBeginning(id) {
-      this.timeline = this.timeline.map((keyframe) => {
-        if (id === keyframe.id && keyframe.start > 0) {
-          return {
-            ...keyframe,
-            start: keyframe.start - 1,
-            length: keyframe.length + 1
-          };
-        } else {
-          return keyframe;
-        }
-      });
+      if (id.startsWith('text')) {
+        this.textTimeline = this.textTimeline.map((keyframe) => {
+          if (id === keyframe.id && keyframe.start > 0) {
+            return {
+              ...keyframe,
+              start: keyframe.start - 1,
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      } else {
+        this.timeline = this.timeline.map((keyframe) => {
+          if (id === keyframe.id && keyframe.start > 0) {
+            return {
+              ...keyframe,
+              start: keyframe.start - 1,
+              length: keyframe.length + 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      }
     },
 
     handleTrimEnd(id) {
-      this.timeline = this.timeline.map((keyframe) => {
-        if (id === keyframe.id && keyframe.length > 1) {
-          return {
-            ...keyframe,
-            length: keyframe.length - 1
-          };
-        } else {
-          return keyframe;
-        }
-      });
+      if (id.startsWith('text')) {
+        this.textTimeline = this.textTimeline.map((keyframe) => {
+          if (id === keyframe.id && keyframe.start + 1 < keyframe.end) {
+            return {
+              ...keyframe,
+              end: keyframe.end - 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      } else {
+        this.timeline = this.timeline.map((keyframe) => {
+          if (id === keyframe.id && keyframe.length > 1) {
+            return {
+              ...keyframe,
+              length: keyframe.length - 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      }
     },
 
     handleLengthenEnd(id) {
-      this.timeline = this.timeline.map((keyframe) => {
-        if (id === keyframe.id) {
-          return {
-            ...keyframe,
-            length: keyframe.length + 1
-          };
-        } else {
-          return keyframe;
-        }
-      });
+      if (id.startsWith('text')) {
+        this.textTimeline = this.textTimeline.map((keyframe) => {
+          if (id === keyframe.id) {
+            return {
+              ...keyframe,
+              end: keyframe.end + 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      } else {
+        this.timeline = this.timeline.map((keyframe) => {
+          if (id === keyframe.id) {
+            return {
+              ...keyframe,
+              length: keyframe.length + 1
+            };
+          } else {
+            return keyframe;
+          }
+        });
+      }
     },
 
     // Remove the keyframe from the array and insert it earlier
@@ -536,6 +588,7 @@ export default {
 
 <style lang="scss">
 @import '../node_modules/@vidyard/construction-yard/dist/system/system.css';
+@import '../node_modules/@vidyard/construction-yard/dist/system/system.utils.scss';
 
 body {
   margin: 0;

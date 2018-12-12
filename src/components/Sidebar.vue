@@ -58,7 +58,7 @@ export default {
   flex-flow: column;
   width: 300px;
   height: 100%;
-  border-right: 1px solid $c-grey-350;
+  border-right: 1px solid $c-grey-200;
   padding: $space-small;
 
   h4 {
