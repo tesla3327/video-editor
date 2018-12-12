@@ -35,6 +35,7 @@
         </div>
       </div>
       <Timeline
+        type="video"
         :keyframes="keyframes"
         :videos="videos"
         :time="currTime"
@@ -55,6 +56,7 @@
         @add-video="handleAddVideo"
       />
       <Timeline
+        type="text"
         :keyframes="textKeyframes"
         :time="currTime"
         :selected="selected"
@@ -71,7 +73,7 @@
         @delete="handleDelete"
         @start-grab="grabbing = true"
         @end-grab="grabbing = false"
-        @add-video="handleAddVideo"
+        @add-text-region="handleAddText"
       />
     </div>
   </div>
@@ -105,14 +107,15 @@ export default {
       currTime: 0,
       timeline: [],
       textTimeline: [
-        {
-          id: 'text1',
-          text: 'Dance',
-          start: 2,
-          end: 5,
-          colour: 'white',
-          fontSize: 24,
-        },
+        // {
+        //   id: 'text1',
+        //   text: 'Dance',
+        //   start: 2,
+        //   end: 5,
+        //   colour: 'white',
+        //   fontSize: 24,
+        //   theme: 'grey',
+        // },
       ],
       selected: '',
       grabbing: false,
@@ -270,6 +273,29 @@ export default {
       });
     },
 
+    handleAddText() {
+      const lastTextRegion = this.textTimeline[this.textTimeline.length - 1];
+
+      let start = 0;
+      if (lastTextRegion) {
+        start = lastTextRegion.end;
+      }
+
+      const id = `text${getId()}`;
+      const textRegion = {
+        id,
+        text: 'Add text',
+        colour: 'white',
+        fontSize: 40,
+        theme: 'grey',
+        start,
+        end: Math.min(start + 5, this.totalLength),
+      };
+
+      this.textTimeline.push(textRegion);
+      this.selected = id;
+    },
+
     handleAddVideo(file) {
       // Add the video object
       const url = URL.createObjectURL(file);
@@ -304,21 +330,41 @@ export default {
     },
 
     handleDelete(id) {
-      const index = this.timeline.findIndex(el => el.id === id);
-      this.timeline.splice(index, 1);
+      if (id.startsWith('text')) {
+        const index = this.textTimeline.findIndex(el => el.id === id);
+        this.textTimeline.splice(index, 1);
+      } else {
+        const index = this.timeline.findIndex(el => el.id === id);
+        this.timeline.splice(index, 1);
+      }
+
+      this.selected = '';
     },
 
     handleDuplicate(id) {
-      const index = this.timeline.findIndex(el => el.id === id);
+      if (id.startsWith('text')) {
+        // const index = this.textTimeline.findIndex(el => el.id === id);
 
-      // Duplicate keyframe
-      const keyframe = {
-        ...this.timeline[index],
-        id: getId(),
-      };
+        // // Duplicate keyframe
+        // const keyframe = {
+        //   ...this.textTimeline[index],
+        //   id: `text${getId()}`,
+        // };
 
-      // Insert duplicate
-      this.timeline.splice(index, 0, keyframe);
+        // // Insert duplicate
+        // this.textTimeline.splice(index, 0, keyframe);
+      } else {
+        const index = this.timeline.findIndex(el => el.id === id);
+
+        // Duplicate keyframe
+        const keyframe = {
+          ...this.timeline[index],
+          id: getId(),
+        };
+
+        // Insert duplicate
+        this.timeline.splice(index, 0, keyframe);
+      }
     },
 
     handleSplit(id) {

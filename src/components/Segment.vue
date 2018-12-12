@@ -17,7 +17,7 @@
       @mousedown.stop="handleStartMousedown"
     />
     <div class="segment-body">
-      <span class="video-title">{{ name }}</span>
+      <span class="video-title">{{ name.trim() || '&nbsp;' }}</span>
       <span class="video-range">
         {{`${segment.start}s - ${segment.start + segment.length}s`}}
       </span>

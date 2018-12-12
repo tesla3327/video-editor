@@ -30,12 +30,14 @@
     </div>
     <div class="add-video">
       <div class="overlay">+</div>
-      <input type="file" ref="fileInput" @change="handleInputChange" />
+      <input v-if="type === 'video'" type="file" ref="fileInput" @change="handleInputChange" />
+      <VyButton v-else @click="$emit('add-text-region')" />
     </div>
   </div>
 </template>
 
 <script>
+import { VyButton } from '@vidyard/construction-yard';
 import Segment from './Segment';
 
 export default {
@@ -43,6 +45,7 @@ export default {
 
   components: {
     Segment,
+    VyButton,
   },
 
   props: {
@@ -50,6 +53,7 @@ export default {
     time: Number,
     selected: String,
     totalLength: Number,
+    type: String,
   },
 
   data() {
@@ -146,9 +150,10 @@ export default {
   right: 10px;
   top: 45px;
 
-  input {
-    width: 50px;
-    opacity: 0;
+  input,
+  .vy-button {
+    width: 50px !important;
+    opacity: 0 !important;
 
     &:hover {
       cursor: pointer;
@@ -180,7 +185,6 @@ export default {
   height: calc(100% + 40px);
   width: 2px;
   background: #7518cc;
-  box-shadow: 0 10px 30px 0px rgba(0, 0, 0, 0.8);
 }
 
 

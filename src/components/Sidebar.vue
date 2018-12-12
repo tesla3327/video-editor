@@ -13,7 +13,7 @@
         :value="selected.colour"
         @input="$emit('change-colour', $event)"
       />
-      <VyInput
+      <VyInputNumber
         label="Font Size"
         :value="selected.fontSize"
         @input="$emit('change-font-size', $event)"
@@ -25,6 +25,7 @@
 <script>
 import {
   VyInput,
+  VyInputNumber,
 } from '@vidyard/construction-yard';
 
 export default {
@@ -37,6 +38,7 @@ export default {
 
   components: {
     VyInput,
+    VyInputNumber,
   },
 
   computed: {
