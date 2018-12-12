@@ -129,7 +129,7 @@ export default {
 <style lang="scss" scoped>
 .timeline-wrapper {
   background: #c8cee3;
-  padding: 20px;
+  padding: 20px 60px 20px 20px;
   position: relative;
 }
 

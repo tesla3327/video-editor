@@ -153,7 +153,7 @@ export default {
       this.offset.y += delta.y;
 
       const resizeDiff = this.initialX - e.screenX;
-      const pixelsPerSecond = this.getPixelsPerSecond();
+      const pixelsPerSecond = this.getPixelsPerSecond() / 3;
 
       if (this.startGrabbed) {
         if (resizeDiff > pixelsPerSecond) {
