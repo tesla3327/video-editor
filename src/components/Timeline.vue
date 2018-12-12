@@ -10,7 +10,7 @@
         :index="index"
         :name="segment.name"
         :total-length="totalLength"
-        :colour="colour"
+        :colour="segment.colour || 'grey'"
         :hidden="segment.name === '_'"
         @keydown.native="e => handleKeydown(e, segment.id)"
         @select="() => $emit('select', segment.id)"
@@ -50,7 +50,6 @@ export default {
     time: Number,
     selected: String,
     totalLength: Number,
-    colour: String,
   },
 
   data() {

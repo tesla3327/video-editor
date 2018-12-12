@@ -30,7 +30,6 @@
       :time="currTime"
       :selected="selected"
       :total-length="totalLength"
-      colour="grey"
       @move-left="id => handleMove(id, -1)"
       @move-right="id => handleMove(id, 1)"
       @trim-beginning="handleTrimBeginning"
@@ -50,7 +49,6 @@
       :time="currTime"
       :selected="selected"
       :total-length="totalLength"
-      colour="indigo"
       @move-left="id => handleMove(id, -1)"
       @move-right="id => handleMove(id, 1)"
       @trim-beginning="handleTrimBeginning"
@@ -73,6 +71,10 @@ import Timeline from "./components/Timeline";
 
 let id = 0;
 const getId = () => 'id-' + id++;
+
+let colourIndex = 0;
+const colours = ['teal', 'turquoise', 'indigo'];
+const getColour = () => colours[colourIndex++ % colours.length];
 
 export default {
   name: "app",
@@ -237,7 +239,8 @@ export default {
           id: getId(),
           video: index,
           start: 0,
-          length: Math.ceil(length)
+          length: Math.ceil(length),
+          colour: getColour(),
         });
         this.muteAllVideos();
       }, 50);
@@ -481,6 +484,11 @@ export default {
 </script>
 
 <style lang="scss">
+body {
+  margin: 0;
+  background: #FAFBFF;
+}
+
 .grabbing * {
   cursor: ew-resize !important;
 }

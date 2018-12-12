@@ -317,6 +317,7 @@ export default {
 
 .video-range {
   font-size: 14px;
+  color: #EBF0F7;
 }
 
 .video-range,
